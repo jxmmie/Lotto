@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class RegisterPages extends StatefulWidget {
+  const RegisterPages({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<RegisterPages> createState() => _RegisterPagesState();
 }
 
-class _LoginState extends State<Login> {
+class _RegisterPagesState extends State<RegisterPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,7 +107,26 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
 
+                    // ช่องกรอก Password
+                    TextField(
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "Confirm Password",
+                        prefixIcon: const Icon(Icons.lock),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 20,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 8),
 
                     Align(
@@ -121,30 +140,8 @@ class _LoginState extends State<Login> {
                         ),
                         onPressed: () {},
                         child: const Text(
-                          "ลืมรหัสผ่าน?",
+                          "หากมีบัญชีผู้ใช้แล้ว?",
                           style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // ปุ่มเข้าสู่ระบบ
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepOrange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text(
-                          "เข้าสู่ระบบ",
-                          style: TextStyle(fontSize: 18),
                         ),
                       ),
                     ),
@@ -161,7 +158,7 @@ class _LoginState extends State<Login> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: const Text(
