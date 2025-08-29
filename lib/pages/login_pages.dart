@@ -139,7 +139,7 @@ class _LoginState extends State<Login> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: const Text(
@@ -161,7 +161,7 @@ class _LoginState extends State<Login> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: const Text(
