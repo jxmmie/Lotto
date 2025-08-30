@@ -14,12 +14,12 @@ class _LoginState extends State<Login> {
       backgroundColor: Colors.black, // พื้นหลังนอกสุด
       body: Center(
         child: Container(
-          width: 350,
-          height: 700,
+          width: 400,
+          height: 820,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFDAA26), Color(0xFFFFF8400)],
+              colors: [Color(0xFFFDAA26), Color(0xFFFF8400)],
               stops: [0.51, 0.97],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -29,19 +29,19 @@ class _LoginState extends State<Login> {
             children: [
               /// 🐾 ลายเท้าแมว (ใส่รูป paw.png ใน assets)
               Positioned(
-                top: 20,
+                top: 30,
                 left: 0,
                 child: Opacity(
                   opacity: 0.9,
-                  child: Image.asset("assets/teen1.png", width: 100),
+                  child: Image.asset("assets/teen1.png", width: 130),
                 ),
               ),
               Positioned(
-                bottom: 10,
+                bottom: 0,
                 right: 0,
                 child: Opacity(
-                  opacity: 0.5,
-                  child: Image.asset("assets/teen2.png", width: 200),
+                  opacity: 0.9,
+                  child: Image.asset("assets/teen2.png", width: 230),
                 ),
               ),
 
@@ -66,14 +66,29 @@ class _LoginState extends State<Login> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 20),
+                    Column(
+                      children: [
+                        Container(
+                          height: 80,
+                          width: 250,
+                          decoration: BoxDecoration(
+                            image: const DecorationImage(
+                              image: AssetImage("assets/login-text.png"),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
 
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 30),
 
                     // ช่องกรอก Username
                     TextField(
                       decoration: InputDecoration(
-                        hintText: "Username",
-                        prefixIcon: const Icon(Icons.person),
+                        hintText: "อีเมล",
+                        prefixIcon: const Icon(Icons.email),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -93,7 +108,7 @@ class _LoginState extends State<Login> {
                     TextField(
                       obscureText: true,
                       decoration: InputDecoration(
-                        hintText: "Password",
+                        hintText: "รหัสผ่าน",
                         prefixIcon: const Icon(Icons.lock),
                         filled: true,
                         fillColor: Colors.white,
@@ -149,7 +164,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
                     // ปุ่มสมัครสมาชิก
                     SizedBox(
@@ -157,7 +172,7 @@ class _LoginState extends State<Login> {
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xfff521f00),
+                          backgroundColor: Color(0xff521f00),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(

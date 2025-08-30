@@ -62,6 +62,9 @@ flutter:
     - assets\logo-text.png
     - assets\teen1.png
     - assets\teen2.png
+    - assets\login-text.png
+    - assets\register-text.png
+    - assets\logo.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
