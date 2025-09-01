@@ -36,7 +36,7 @@ class _CreditPagesState extends State<CreditPages> {
         ),
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 12),
+            margin: const EdgeInsets.only(right: 10),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: Color(0xffFF8400),
@@ -60,17 +60,9 @@ class _CreditPagesState extends State<CreditPages> {
               ],
             ),
           ),
-
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Icon(
-              Icons.account_circle_outlined,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
         ],
       ),
+
       body: Center(
         child: Container(
           width: 400,
@@ -245,37 +237,42 @@ class _CreditPagesState extends State<CreditPages> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF321400), // สีพื้นหลังของ BottomNavigationBar
-          borderRadius: BorderRadius.zero,
+      //------------------------- Navbar ล่าง -----------------------------
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF321400),
+        elevation: 0,
+        selectedItemColor: const Color(0xffFF8400),
+        unselectedItemColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
+        selectedLabelStyle: const TextStyle(
+          color: Color(0xffFF8400),
+          fontWeight: FontWeight.bold,
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors
-              .transparent, // ทำให้พื้นหลังโปร่งใสเพื่อใช้สีของ Container ด้านนอก
-          elevation: 0, // ลบเงา
-          selectedItemColor: const Color(
-            0xffFF8400,
-          ), // สีไอคอน/ข้อความที่ถูกเลือก
-          unselectedItemColor: Colors.white, // สีไอคอน/ข้อความที่ไม่ถูกเลือก
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.storage_sharp),
-              label: 'ล็อตเตอรี่ของฉัน',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: 'หน้าหลัก',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              label: 'กระเป๋าเงิน',
-            ),
-          ],
-        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 0),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'หน้าหลัก',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storage_sharp),
+            label: 'ลอตเตอรี่',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            label: 'กระเป๋าเงิน',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events_outlined),
+            label: 'รางวัล',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
+        ],
       ),
+      //*********************** Navbar ล่าง End. ************************
     );
   }
 }

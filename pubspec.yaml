@@ -65,6 +65,8 @@ flutter:
     - assets\login-text.png
     - assets\register-text.png
     - assets\logo.png
+    - assets\bg.png
+    - assets\Congratulations.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

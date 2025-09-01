@@ -57,7 +57,7 @@ class _MyScreenState extends State<MyScreen> {
         ),
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 12),
+            margin: const EdgeInsets.only(right: 10),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: themeOrange,
@@ -65,16 +65,21 @@ class _MyScreenState extends State<MyScreen> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 20),
+                Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 SizedBox(width: 6),
-                Text("เครดิต 9999.99",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  "เครดิต 9999.99",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Icon(Icons.account_circle_outlined, color: Colors.white, size: 28),
           ),
         ],
       ),
@@ -92,7 +97,6 @@ class _MyScreenState extends State<MyScreen> {
 
             return Stack(
               children: [
-
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -156,10 +160,20 @@ class _MyScreenState extends State<MyScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('รางวัลที่ออก',
-                                        style: TextStyle(color: Colors.white, fontSize: 20)),
+                                    const Text(
+                                      'รางวัลที่ออก',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                      ),
+                                    ),
                                     const SizedBox(height: 14),
-                                    Center(child: _lotteryBox('รางวัลที่ 1', _winningNumber1)),
+                                    Center(
+                                      child: _lotteryBox(
+                                        'รางวัลที่ 1',
+                                        _winningNumber1,
+                                      ),
+                                    ),
                                     const SizedBox(height: 10),
                                     Center(
                                       child: Wrap(
@@ -167,8 +181,14 @@ class _MyScreenState extends State<MyScreen> {
                                         spacing: 10,
                                         runSpacing: 10,
                                         children: [
-                                          _lotteryBox('รางวัลที่ 2', _winningNumber2),
-                                          _lotteryBox('รางวัลที่ 3', _winningNumber3),
+                                          _lotteryBox(
+                                            'รางวัลที่ 2',
+                                            _winningNumber2,
+                                          ),
+                                          _lotteryBox(
+                                            'รางวัลที่ 3',
+                                            _winningNumber3,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -179,8 +199,14 @@ class _MyScreenState extends State<MyScreen> {
                                         spacing: 10,
                                         runSpacing: 10,
                                         children: [
-                                          _lotteryBox('รางวัลที่ 4', _winningNumber4),
-                                          _lotteryBox('รางวัลที่ 5', _winningNumber5),
+                                          _lotteryBox(
+                                            'รางวัลที่ 4',
+                                            _winningNumber4,
+                                          ),
+                                          _lotteryBox(
+                                            'รางวัลที่ 5',
+                                            _winningNumber5,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -190,28 +216,40 @@ class _MyScreenState extends State<MyScreen> {
                               const SizedBox(height: 16),
 
                               // การ์ด “ล็อตเตอรี่ของคุณ”
-                                Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 180, 98, 47),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text('ล็อตเตอรี่ของ คุณ',
-                      style: TextStyle(color: Colors.white, fontSize: 20)),
-                  const SizedBox(height: 10),
-                  Image.asset("assets/logo.png", width: 80, height: 80),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'เมื่อซื้อลอตเตอรี่สำเร็จ\nสามารถดูลอตเตอรี่ได้ที่นี่',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color.fromARGB(255, 180, 98, 47),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'ล็อตเตอรี่ของ คุณ',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Image.asset(
+                                      "assets/logo.png",
+                                      width: 80,
+                                      height: 80,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'เมื่อซื้อลอตเตอรี่สำเร็จ\nสามารถดูลอตเตอรี่ได้ที่นี่',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
 
                               // กันชนล่างเล็กน้อยเหนือ BottomNavigationBar
                               const SizedBox(height: 12),
@@ -228,26 +266,42 @@ class _MyScreenState extends State<MyScreen> {
         ),
       ),
 
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF321400),
-          borderRadius: BorderRadius.zero,
+      //------------------------- Navbar ล่าง -----------------------------
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF321400),
+        elevation: 0,
+        selectedItemColor: const Color(0xffFF8400),
+        unselectedItemColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
+        selectedLabelStyle: const TextStyle(
+          color: Color(0xffFF8400),
+          fontWeight: FontWeight.bold,
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: const Color(0xffFF8400),
-          unselectedItemColor: Colors.white,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(icon: Icon(Icons.storage_sharp), label: 'ล็อตเตอรี่ของฉัน'),
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'หน้าหลัก'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance_wallet_outlined), label: 'กระเป๋าเงิน'),
-          ],
-        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 0),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'หน้าหลัก',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storage_sharp),
+            label: 'ลอตเตอรี่',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            label: 'กระเป๋าเงิน',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events_outlined),
+            label: 'รางวัล',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
+        ],
       ),
+      //*********************** Navbar ล่าง End. ************************
     );
   }
 }

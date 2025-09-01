@@ -203,42 +203,42 @@ class _detail_userState extends State<detail_bank> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF321400),
-          borderRadius: BorderRadius.zero,
+      //------------------------- Navbar ล่าง -----------------------------
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF321400),
+        elevation: 0,
+        selectedItemColor: const Color(0xffFF8400),
+        unselectedItemColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
+        selectedLabelStyle: const TextStyle(
+          color: Color(0xffFF8400),
+          fontWeight: FontWeight.bold,
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: const Color(0xffFF8400),
-          unselectedItemColor: Colors.white,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.storage_sharp),
-              label: 'ล็อตเตอรี่ของฉัน',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: 'หน้าหลัก',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              label: 'กระเป๋าเงิน',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.star_border),
-              label: 'ประวัติรางวัล',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: 'สมาชิก',
-            ),
-          ],
-        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 0),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'หน้าหลัก',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storage_sharp),
+            label: 'ลอตเตอรี่',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            label: 'กระเป๋าเงิน',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events_outlined),
+            label: 'รางวัล',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
+        ],
       ),
+      //*********************** Navbar ล่าง End. ************************
     );
   }
 }
