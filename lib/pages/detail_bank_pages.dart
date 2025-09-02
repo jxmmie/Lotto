@@ -4,10 +4,10 @@ class detail_bank extends StatefulWidget {
   const detail_bank({super.key});
 
   @override
-  State<detail_bank> createState() => _detail_userState(); // เปลี่ยน createState ให้สอดคล้องกับคลาสใหม่
+  State<detail_bank> createState() => _detailBankState(); // เปลี่ยน createState ให้สอดคล้องกับคลาสใหม่
 }
 
-class _detail_userState extends State<detail_bank> {
+class _detailBankState extends State<detail_bank> {
   // เปลี่ยนชื่อ State class
   int _selectedIndex = 0;
 

@@ -44,11 +44,19 @@ class _LoadPagesState extends State<LoadPages> {
               children: [
                 /// 🐾 ลายเท้าแมว (ใส่รูป paw.png ใน assets)
                 Positioned(
-                  top: 30,
+                  top: 0,
                   left: 0,
                   child: Opacity(
                     opacity: 0.9,
-                    child: Image.asset("assets/teen1.png", width: 130),
+                    child: Image.asset("assets/TL.png", width: 170),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Opacity(
+                    opacity: 0.9,
+                    child: Image.asset("assets/TR.png", width: 100),
                   ),
                 ),
                 Positioned(
@@ -56,7 +64,30 @@ class _LoadPagesState extends State<LoadPages> {
                   right: 0,
                   child: Opacity(
                     opacity: 0.9,
-                    child: Image.asset("assets/teen2.png", width: 230),
+                    child: Image.asset("assets/BR.png", width: 270),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 90, left: 90),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // โลโก้แมว
+                      Column(
+                        children: [
+                          Container(
+                            height: 250,
+                            width: 200,
+                            decoration: BoxDecoration(
+                              image: const DecorationImage(
+                                image: AssetImage("assets/logo-load.png"),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],

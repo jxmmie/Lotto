@@ -8,7 +8,7 @@ class CreditPages extends StatefulWidget {
 }
 
 class _CreditPagesState extends State<CreditPages> {
-  int _selectedIndex = 1; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
+  int _selectedIndex = 2; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
 
   void _onItemTapped(int index) {
     setState(() {
@@ -96,8 +96,9 @@ class _CreditPagesState extends State<CreditPages> {
               ),
               Positioned.fill(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 120),
                     Container(
                       width: 200,
                       height: 200,
@@ -181,54 +182,6 @@ class _CreditPagesState extends State<CreditPages> {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xffAE5017),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 135,
-                          vertical: 15,
-                        ),
-                        minimumSize: const Size(250, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(
-                            color: Color(0xFF521F00),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: const Text(
-                        'ประวัติการซื้อ',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xffAE5017),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 113,
-                          vertical: 15,
-                        ),
-                        minimumSize: const Size(250, 50), // กำหนดขนาดปุ่ม
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(
-                            color: Color(0xFF521F00),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: const Text(
-                        'ประวัติการถูกรางวัล',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
                     ),
                   ],
                 ),

@@ -4,10 +4,10 @@ class detail_user extends StatefulWidget {
   const detail_user({super.key});
 
   @override
-  State<detail_user> createState() => _CreditPageState();
+  State<detail_user> createState() => _CreditUserState();
 }
 
-class _CreditPageState extends State<detail_user> {
+class _CreditUserState extends State<detail_user> {
   int _selectedIndex = 0; // Current selected index for BottomNavigationBar
 
   void _onItemTapped(int index) {

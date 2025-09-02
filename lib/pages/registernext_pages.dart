@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class RegisterPages extends StatefulWidget {
-  const RegisterPages({super.key});
+class RegisternextPages extends StatefulWidget {
+  const RegisternextPages({super.key});
 
   @override
-  State<RegisterPages> createState() => _RegisterPagesState();
+  State<RegisternextPages> createState() => _RegisternextPagesState();
 }
 
-class _RegisterPagesState extends State<RegisterPages> {
+class _RegisternextPagesState extends State<RegisternextPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,6 +88,46 @@ class _RegisterPagesState extends State<RegisterPages> {
                       // ช่องกรอก Username
                       TextField(
                         decoration: InputDecoration(
+                          hintText: "ธนาคาร",
+                          prefixIcon: const Icon(Icons.account_balance),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 20,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // ช่องกรอก Password
+                      TextField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: "หมายเลขบัญชี",
+                          prefixIcon: const Icon(Icons.credit_card),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 20,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      TextField(
+                        obscureText: true,
+                        decoration: InputDecoration(
                           hintText: "ชื่อ-นามสกุล",
                           prefixIcon: const Icon(Icons.person),
                           filled: true,
@@ -102,74 +142,15 @@ class _RegisterPagesState extends State<RegisterPages> {
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 10),
-
-                      // ช่องกรอก Password
-                      TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: "อีเมล",
-                          prefixIcon: const Icon(Icons.email),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 10),
 
                       TextField(
                         obscureText: true,
                         decoration: InputDecoration(
-                          hintText: "วัน/เดือน/ปีเกิด",
-                          prefixIcon: const Icon(Icons.date_range),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
+                          hintText: "ใส่จำนวนเงิน",
+                          prefixIcon: const Icon(
+                            Icons.monetization_on_outlined,
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ช่องกรอก Password
-                      TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: "รหัสผ่าน",
-                          prefixIcon: const Icon(Icons.lock),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ช่องกรอก Password
-                      TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: "ยืนยันรหัสผ่าน",
-                          prefixIcon: const Icon(Icons.lock),
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(
@@ -200,7 +181,27 @@ class _RegisterPagesState extends State<RegisterPages> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 10),
 
+                      // ปุ่มสมัครสมาชิก
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xff6E6E6E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          child: const Text(
+                            "ถอยกลับ",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 10),
 
                       // ปุ่มสมัครสมาชิก

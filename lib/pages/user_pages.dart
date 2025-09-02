@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CreditPage extends StatefulWidget {
-  const CreditPage({super.key});
+class UserPages extends StatefulWidget {
+  const UserPages({super.key});
 
   @override
-  State<CreditPage> createState() => _CreditPageState();
+  State<UserPages> createState() => _UserPagesState();
 }
 
-class _CreditPageState extends State<CreditPage> {
+class _UserPagesState extends State<UserPages> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
