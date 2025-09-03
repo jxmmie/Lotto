@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiClient {
   // เปลี่ยนให้ตรงกับพอร์ต/โฮสต์ของ .NET คุณ
   // Android Emulator ใช้ 10.0.2.2 แทน localhost
-  static const _baseUrl = 'http://10.0.2.2:5000';
+  static const _baseUrl = 'https://b2ccf88aed79.ngrok-free.app';
   final _storage = const FlutterSecureStorage();
 
   Future<String> login({required String email, required String password}) async {
