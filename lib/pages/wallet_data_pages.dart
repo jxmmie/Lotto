@@ -29,6 +29,9 @@ class _MyWalletdataState extends State<MyWalletdata> {
     const themeOrange = Color(0xffFF8400);
     const goldColor = Color(0xFFFDD835);
     const darkBrownColor = Color(0xFF521F00);
+    const darkCardColor = Color(
+      0xFFC75D19,
+    ); // เพิ่มสีน้ำตาลเข้มสำหรับพื้นหลังรายการรางวัล
 
     return Scaffold(
       //------------------------- Top Navbar -----------------------------
@@ -111,7 +114,6 @@ class _MyWalletdataState extends State<MyWalletdata> {
             Center(
               child: Container(
                 width: screenWidth * 0.88,
-                height: screenHeight * 0.6,
                 padding: EdgeInsets.symmetric(
                   horizontal: screenWidth * 0.05,
                   vertical: screenHeight * 0.03,
@@ -122,30 +124,30 @@ class _MyWalletdataState extends State<MyWalletdata> {
                   border: Border.all(color: const Color(0xFFFDAA26), width: 2),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
                       "assets/Congratulations.png",
                       width: screenWidth * 0.5,
                     ),
                     SizedBox(height: screenHeight * 0.03),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: 2,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: screenHeight * 0.02,
-                            ),
-                            child: _buildWinningEntry(
-                              context,
-                              "รางวัลที่ 1",
-                              "6 ล้านบาท",
-                              "3 2 7 8 2 7",
-                            ),
-                          );
-                        },
+                    Padding(
+                      padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                      child: _buildWinningEntry(
+                        context,
+                        "รางวัลที่ 1",
+                        "6 ล้านบาท",
+                        "3 2 7 8 2 7",
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                      child: _buildWinningEntry(
+                        context,
+                        "รางวัลที่ 1",
+                        "6 ล้านบาท",
+                        "3 2 7 8 2 7",
                       ),
                     ),
                   ],
@@ -162,7 +164,6 @@ class _MyWalletdataState extends State<MyWalletdata> {
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
         selectedItemColor: const Color(0xffFF8400),
-        unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -205,44 +206,70 @@ class _MyWalletdataState extends State<MyWalletdata> {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04,
+        horizontal: screenWidth * 0.015,
         vertical: screenWidth * 0.02,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFC75D19),
-        borderRadius: BorderRadius.circular(screenWidth * 0.04),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFB47200)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    prizeText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+              // กล่องทอง (ข้อความรางวัล + จำนวนเงิน)
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
                   ),
-                  Text(
-                    amountText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFDD835), Color(0xFFFFC107)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(2, 3),
+                        blurRadius: 5,
+                      ),
+                    ],
                   ),
-                ],
+                  child: Column(
+                    children: [
+                      Text(
+                        prizeText,
+                        style: const TextStyle(
+                          color: Color(0xFF521F00),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        amountText,
+                        style: const TextStyle(
+                          color: Color(0xFF521F00),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+
+              const SizedBox(width: 10),
+
+              // กล่องตัวเลข (เล็กลงเพื่อป้องกัน Overflow)
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
-                  vertical: screenWidth * 0.02,
+                  horizontal: screenWidth * 0.07,
+                  vertical: screenWidth * 0.05,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -264,24 +291,23 @@ class _MyWalletdataState extends State<MyWalletdata> {
             ],
           ),
           SizedBox(height: screenWidth * 0.02),
+
+          // ปุ่ม "ขึ้นเงินรางวัล"
           ElevatedButton(
             onPressed: () {
               // Action for claiming the prize
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B4513),
-              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03),
+              backgroundColor: const Color(0xFF3C0001),
+              elevation: 0,
+              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.025),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                borderRadius: BorderRadius.circular(screenWidth * 0.04),
               ),
             ),
             child: const Text(
               "ขึ้นเงินรางวัล",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
         ],
