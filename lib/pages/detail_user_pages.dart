@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/wallet_data_pages.dart';
+import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 
 class detail_user extends StatefulWidget {
   const detail_user({super.key});
@@ -11,11 +15,31 @@ class _CreditUserState extends State<detail_user> {
   int _selectedIndex = 0; // Current selected index for BottomNavigationBar
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      // TODO: เพิ่ม logic สำหรับนำทางไปยังหน้าอื่น ๆ ตาม index
-      // เช่น if (index == 0) { Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyLottoPage())); }
-    });
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const MyScreen();
+        break;
+      case 1:
+        page = const MyWalletnull();
+        break;
+      case 2:
+        page = const CreditPages();
+        break;
+      case 3:
+        page = const MyWalletdata();
+        break;
+      case 4:
+        page = const detail_user();
+        break;
+      default:
+        page = const MyScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override
@@ -249,8 +273,10 @@ class _CreditUserState extends State<detail_user> {
         unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          _onItemTapped(index); // เปิดหน้าใหม่
+        },
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
           fontWeight: FontWeight.bold,

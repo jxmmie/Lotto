@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/ci/api_client.dart';
-
+import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
+import 'package:flutter_application_1/models/reqeuest/register_request.dart';
+import 'package:flutter_application_1/pages/register_pages.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/services/api_service.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -12,7 +16,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailCtl = TextEditingController();
   final _passCtl = TextEditingController();
-  final _api = ApiClient();
+  final ApiService _api = ApiService();
 
   bool _obscure = true;
   bool _loading = false;
@@ -37,48 +41,28 @@ class _LoginState extends State<Login> {
 
     setState(() => _loading = true);
     try {
-      final token = await _api.login(email: email, password: pass);
+      final loginReq = LoginRequest(email: email, password: pass);
+      final result = await _api.login(loginReq);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ ✅')),
-      );
-      // TODO: นำทางไปหน้า Home ของคุณ
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
-      debugPrint('JWT: $token');
+      if (result != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ ✅')));
+        debugPrint('JWT: ${result['token']}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('เข้าสู่ระบบไม่สำเร็จ')));
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ผิดพลาด: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _onRegisterPressed() async {
-    // ตัวอย่างสมัครแบบเร็ว (คุณอาจทำหน้า Register แยกต่างหาก)
-    // ใส่ชื่อจริงชั่วคราวเพื่อเทส
-    final email = _emailCtl.text.trim();
-    final pass = _passCtl.text;
-
-    if (email.isEmpty || pass.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรอกอีเมลและรหัสผ่านก่อนสมัคร')),
-      );
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      await _api.register(email: email, password: pass, fullname: 'User');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('สมัครสำเร็จ ✅ ลองล็อกอินได้เลย')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('สมัครไม่สำเร็จ: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('ผิดพลาด: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -180,8 +164,13 @@ class _LoginState extends State<Login> {
                           hintText: "รหัสผ่าน",
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
-                            onPressed: () => setState(() => _obscure = !_obscure),
-                            icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                           ),
                           filled: true,
                           fillColor: Colors.white,
@@ -207,7 +196,10 @@ class _LoginState extends State<Login> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           onPressed: () {},
-                          child: const Text("ลืมรหัสผ่าน?", style: TextStyle(color: Colors.black)),
+                          child: const Text(
+                            "ลืมรหัสผ่าน?",
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
 
@@ -228,8 +220,16 @@ class _LoginState extends State<Login> {
                           ),
                           child: _loading
                               ? const SizedBox(
-                                  height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Text("เข้าสู่ระบบ", style: TextStyle(fontSize: 18)),
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "เข้าสู่ระบบ",
+                                  style: TextStyle(fontSize: 18),
+                                ),
                         ),
                       ),
 
@@ -239,7 +239,14 @@ class _LoginState extends State<Login> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _loading ? null : _onRegisterPressed,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RegisterPages(),
+                              ),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xff521f00),
                             foregroundColor: Colors.white,
@@ -248,7 +255,10 @@ class _LoginState extends State<Login> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          child: const Text("สมัครสมาชิก", style: TextStyle(fontSize: 18)),
+                          child: const Text(
+                            "สมัครสมาชิก",
+                            style: TextStyle(fontSize: 18),
+                          ),
                         ),
                       ),
                     ],

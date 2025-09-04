@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 
 class MyWalletdata extends StatefulWidget {
   const MyWalletdata({super.key});
@@ -8,14 +12,34 @@ class MyWalletdata extends StatefulWidget {
 }
 
 class _MyWalletdataState extends State<MyWalletdata> {
-  int _selectedIndex = 1; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
+  int _selectedIndex = 3; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // สามารถเพิ่ม logic สำหรับการเปลี่ยนหน้าได้ที่นี่
-    // เช่น if (index == 0) { Navigator.push(context, MaterialPageRoute(builder: (context) => MyHistoryPage())); }
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const MyScreen();
+        break;
+      case 1:
+        page = const MyWalletnull();
+        break;
+      case 2:
+        page = const CreditPages();
+        break;
+      case 3:
+        page = const MyWalletdata();
+        break;
+      case 4:
+        page = const detail_user();
+        break;
+      default:
+        page = const MyScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override
@@ -164,9 +188,13 @@ class _MyWalletdataState extends State<MyWalletdata> {
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
         selectedItemColor: const Color(0xffFF8400),
+        unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          _onItemTapped(index); // เปิดหน้าใหม่
+        },
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
           fontWeight: FontWeight.bold,

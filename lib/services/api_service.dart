@@ -1,0 +1,60 @@
+import 'dart:convert';
+import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
+import 'package:flutter_application_1/models/reqeuest/register_request.dart';
+import 'package:http/http.dart' as http;
+
+class ApiService {
+  final String baseUrl = 'https://lotto-api-w5f1.onrender.com';
+
+  // Register
+  Future<bool> register(RegisterRequest request) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/Auth/register'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('HTTP status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // ถ้า API ส่ง uid กลับมา แสดงว่าลง DB สำเร็จ
+      if (data['uid'] != null) {
+        print('Register success: ${response.body}');
+        return true;
+      } else {
+        print('Register failed (API returned invalid data): ${response.body}');
+        return false;
+      }
+    } else {
+      print('Register failed (HTTP error): ${response.body}');
+      return false;
+    }
+  }
+
+  // Login
+  Future<Map<String, dynamic>?> login(LoginRequest request) async {
+    final body = jsonEncode(request.toJson());
+    print('Login request: $body'); // ดูว่าข้อมูลส่งไปถูกต้อง
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/Auth/login'),
+      headers: {"Content-Type": "application/json"},
+      body: body,
+    );
+
+    print('Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print('Login success: $data');
+      return data;
+    } else {
+      print('Login failed');
+      return null;
+    }
+  }
+}

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/reqeuest/register_request.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/services/api_service.dart';
 
 import '../ci/api_client.dart';
-
 
 class RegisterPages extends StatefulWidget {
   const RegisterPages({super.key});
@@ -18,7 +20,7 @@ class _RegisterPagesState extends State<RegisterPages> {
   final _phoneCtl = TextEditingController();
   DateTime? _birthday;
 
-  final _api = ApiClient();
+  final ApiService _api = ApiService();
   bool _loading = false;
   bool _obscure1 = true;
   bool _obscure2 = true;
@@ -76,24 +78,38 @@ class _RegisterPagesState extends State<RegisterPages> {
       _toast('รหัสผ่านและยืนยันรหัสไม่ตรงกัน');
       return;
     }
+    if (_birthday == null) {
+      _toast('กรุณาเลือกวันเกิด');
+      return;
+    }
 
     setState(() => _loading = true);
     try {
-      await _api.register(
+      final registerReq = RegisterRequest(
         email: email,
         password: pass,
         fullname: name,
-        birthday: _birthday, // ส่งเป็น null ได้ถ้าไม่เลือก
-        phone: phone.isEmpty ? null : phone,
+        phone: phone,
+        birthday: _fmtDate(_birthday!), // ใช้วันเกิดจริง
       );
-      if (!mounted) return;
-      _toast('สมัครสมาชิกสำเร็จ ✅');
 
-      // กลับไปหน้า Login หรือจะ Navigate ไปหน้าหลักก็ได้
-      Navigator.pop(context);
+      // เรียก API
+      final success = await _api.register(registerReq);
+
+      if (!mounted) return;
+
+      if (success) {
+        _toast('สมัครสมาชิกสำเร็จ ✅');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyScreen()), // ไปหน้าหลัก
+        );
+      } else {
+        _toast('สมัครไม่สำเร็จ ❌');
+      }
     } catch (e) {
       if (!mounted) return;
-      _toast('สมัครไม่สำเร็จ: $e');
+      _toast('เกิดข้อผิดพลาด: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -231,8 +247,13 @@ class _RegisterPagesState extends State<RegisterPages> {
                           hint: 'รหัสผ่าน',
                           icon: Icons.lock,
                           suffix: IconButton(
-                            onPressed: () => setState(() => _obscure1 = !_obscure1),
-                            icon: Icon(_obscure1 ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () =>
+                                setState(() => _obscure1 = !_obscure1),
+                            icon: Icon(
+                              _obscure1
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                           ),
                         ),
                       ),
@@ -246,8 +267,13 @@ class _RegisterPagesState extends State<RegisterPages> {
                           hint: 'ยืนยันรหัสผ่าน',
                           icon: Icons.lock,
                           suffix: IconButton(
-                            onPressed: () => setState(() => _obscure2 = !_obscure2),
-                            icon: Icon(_obscure2 ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () =>
+                                setState(() => _obscure2 = !_obscure2),
+                            icon: Icon(
+                              _obscure2
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                           ),
                         ),
                       ),
@@ -263,8 +289,10 @@ class _RegisterPagesState extends State<RegisterPages> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           onPressed: () => Navigator.pop(context),
-                          child: const Text("หากมีบัญชีผู้ใช้แล้ว? กลับไปล็อกอิน",
-                              style: TextStyle(color: Colors.black)),
+                          child: const Text(
+                            "หากมีบัญชีผู้ใช้แล้ว?",
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
 
@@ -285,8 +313,16 @@ class _RegisterPagesState extends State<RegisterPages> {
                           ),
                           child: _loading
                               ? const SizedBox(
-                                  height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Text("สมัครสมาชิก", style: TextStyle(fontSize: 18)),
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "สมัครสมาชิก",
+                                  style: TextStyle(fontSize: 18),
+                                ),
                         ),
                       ),
                     ],
@@ -300,7 +336,11 @@ class _RegisterPagesState extends State<RegisterPages> {
     );
   }
 
-  InputDecoration _decoration({required String hint, required IconData icon, Widget? suffix}) {
+  InputDecoration _decoration({
+    required String hint,
+    required IconData icon,
+    Widget? suffix,
+  }) {
     return InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon),

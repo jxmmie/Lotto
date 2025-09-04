@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/wallet_data_pages.dart';
+import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 
 class MyScreen extends StatefulWidget {
   const MyScreen({super.key});
@@ -18,7 +22,31 @@ class _MyScreenState extends State<MyScreen> {
   String? _winningNumber5;
 
   void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const MyScreen();
+        break;
+      case 1:
+        page = const MyWalletnull();
+        break;
+      case 2:
+        page = const CreditPages();
+        break;
+      case 3:
+        page = const MyWalletdata();
+        break;
+      case 4:
+        page = const detail_user();
+        break;
+      default:
+        page = const MyScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   Widget _lotteryBox(String title, String? number) {
@@ -93,7 +121,6 @@ class _MyScreenState extends State<MyScreen> {
             final contentMaxWidth = math.min(maxW, 500.0);
 
             final topCardHeight = math.max(200.0, maxH * 0.53);
-            final bottomCardHeight = math.max(150.0, maxH * 0.23);
 
             return Stack(
               children: [
@@ -109,7 +136,6 @@ class _MyScreenState extends State<MyScreen> {
                     ),
                   ),
                 ),
-
                 Positioned(
                   top: 16,
                   left: 0,
@@ -134,7 +160,6 @@ class _MyScreenState extends State<MyScreen> {
                     ),
                   ),
                 ),
-
                 SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: ConstrainedBox(
@@ -214,7 +239,6 @@ class _MyScreenState extends State<MyScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-
                               // การ์ด “ล็อตเตอรี่ของคุณ”
                               Container(
                                 width: double.infinity,
@@ -250,8 +274,6 @@ class _MyScreenState extends State<MyScreen> {
                                   ],
                                 ),
                               ),
-
-                              // กันชนล่างเล็กน้อยเหนือ BottomNavigationBar
                               const SizedBox(height: 12),
                             ],
                           ),
@@ -274,8 +296,10 @@ class _MyScreenState extends State<MyScreen> {
         unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          _onItemTapped(index); // เปิดหน้าใหม่
+        },
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
           fontWeight: FontWeight.bold,
@@ -301,7 +325,6 @@ class _MyScreenState extends State<MyScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
         ],
       ),
-      //*********************** Navbar ล่าง End. ************************
     );
   }
 }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 
 class MyWalletnull extends StatefulWidget {
   const MyWalletnull({super.key});
@@ -8,13 +12,34 @@ class MyWalletnull extends StatefulWidget {
 }
 
 class _MyWalletnullState extends State<MyWalletnull> {
-  //---------------Funtion ปุ่ม Navbar ล่าง----------------
-  int _selectedIndex =
-      1; // เพิ่ม _selectedIndex และ _onItemTapped เพื่อให้ BottomNavigationBar ทำงานได้
+  //---------------Funtion ปุ่ม Navbar
+  int _selectedIndex = 1;
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const MyScreen();
+        break;
+      case 1:
+        page = const MyWalletnull();
+        break;
+      case 2:
+        page = const CreditPages();
+        break;
+      case 3:
+        page = const MyWalletdata();
+        break;
+      case 4:
+        page = const detail_user();
+        break;
+      default:
+        page = const MyScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override
@@ -161,7 +186,10 @@ class _MyWalletnullState extends State<MyWalletnull> {
         unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          _onItemTapped(index); // เปิดหน้าใหม่
+        },
         // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
