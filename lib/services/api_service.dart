@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
 import 'package:flutter_application_1/models/reqeuest/register_request.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://lotto-api-w5f1.onrender.com';
+  final String baseUrl = 'http://10.0.2.2:8080';
 
   // Register
   Future<bool> register(RegisterRequest request) async {
@@ -54,6 +56,27 @@ class ApiService {
       return data;
     } else {
       print('Login failed');
+      return null;
+    }
+  }
+
+  Future<LottoResponse?> getLotto() async {
+    try {
+      final url = Uri.parse('$baseUrl/Admin/lotto');
+
+      // แก้ไข: ลบ Headers ที่ไม่จำเป็นออก
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        log("Response Body: ${response.body}");
+        final List<dynamic> jsonList = json.decode(response.body);
+        return LottoResponse.fromJson(jsonList);
+      } else {
+        log("Failed to load data with status code: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      log("Error fetching data: $e");
       return null;
     }
   }
