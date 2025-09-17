@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart';
 import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
 import 'package:flutter_application_1/models/reqeuest/register_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
@@ -57,6 +58,30 @@ class ApiService {
     } else {
       print('Login failed');
       return null;
+    }
+  }
+
+  Future<bool> createLotto(CreateLottoRequest request) async {
+    final body = jsonEncode(request.toJson());
+    log('Create Lotto Request Body: $body');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/Admin/Createlotto'),
+      headers: {"Content-Type": "application/json"},
+      body: body,
+    );
+
+    log('Status code: ${response.statusCode}');
+    log('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      log('Create Lotto success!');
+      return true;
+    } else {
+      log(
+        'Create Lotto failed. Status: ${response.statusCode}, Body: ${response.body}',
+      );
+      return false;
     }
   }
 

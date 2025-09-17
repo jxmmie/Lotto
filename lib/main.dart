@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/admin_pages.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_bank_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
@@ -21,6 +22,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Flutter Demo', home: MyScreen());
+    return const MaterialApp(title: 'Flutter Demo', home: AdminPages());
   }
 }
