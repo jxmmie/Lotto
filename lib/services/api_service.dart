@@ -61,6 +61,7 @@ class ApiService {
     }
   }
 
+  // Create Lotto
   Future<bool> createLotto(CreateLottoRequest request) async {
     final body = jsonEncode(request.toJson());
     log('Create Lotto Request Body: $body');
@@ -85,11 +86,11 @@ class ApiService {
     }
   }
 
+  // Get Lotto
   Future<LottoResponse?> getLotto() async {
     try {
       final url = Uri.parse('$baseUrl/Admin/lotto');
 
-      // แก้ไข: ลบ Headers ที่ไม่จำเป็นออก
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -103,6 +104,41 @@ class ApiService {
     } catch (e) {
       log("Error fetching data: $e");
       return null;
+    }
+  }
+
+  // Random Rewards
+  Future<bool> randomRewards() async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/Admin/random-rewards'),
+    );
+
+    log('Status code for random rewards: ${response.statusCode}');
+    log('Response body for random rewards: ${response.body}');
+
+    if (response.statusCode == 200) {
+      log('Random rewards generated successfully!');
+      return true;
+    } else {
+      log(
+        'Failed to generate random rewards. Status: ${response.statusCode}, Body: ${response.body}',
+      );
+      return false;
+    }
+  }
+
+  // Select Reward (ใช้ตอนเลือกเลขท้าย 2 ตัว)
+  Future<bool> selectReward(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/Admin/select-reward'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      log('Error selecting reward: $e');
+      return false;
     }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart';
 import 'dart:math';
+import 'dart:developer';
 
 import 'package:flutter_application_1/services/api_service.dart';
 
@@ -13,11 +13,10 @@ class AdminPages extends StatefulWidget {
 }
 
 class _AdminPagesState extends State<AdminPages> {
-  // สร้าง Controllers สำหรับดึงค่าจาก TextField
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-
   final ApiService _apiService = ApiService();
+
   bool _isSaving = false;
 
   @override
@@ -27,16 +26,12 @@ class _AdminPagesState extends State<AdminPages> {
     super.dispose();
   }
 
-  // ฟังก์ชันหลักสำหรับบันทึกข้อมูล
+  /// ------------------ ฟังก์ชันเพิ่มลอตเตอรี่ ------------------
   void _onSaveButtonPressed() async {
-    // ปิด Dialog
     Navigator.of(context).pop();
-
-    // ดึงค่าจาก Controller
     final String quantityText = _quantityController.text;
     final String priceText = _priceController.text;
 
-    // ตรวจสอบข้อมูลเบื้องต้น
     if (quantityText.isEmpty || priceText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('กรุณากรอกข้อมูลให้ครบถ้วน')),
@@ -54,15 +49,10 @@ class _AdminPagesState extends State<AdminPages> {
       return;
     }
 
-    // เริ่มการบันทึกข้อมูล
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     int successfulInserts = 0;
-    // วนลูปเพื่อส่งข้อมูลตามจำนวนที่ระบุ
     for (int i = 0; i < quantity; i++) {
-      // สุ่มเลข 6 หลัก
       final String randomLotteryNumber = Random()
           .nextInt(999999)
           .toString()
@@ -77,16 +67,11 @@ class _AdminPagesState extends State<AdminPages> {
       );
 
       bool success = await _apiService.createLotto(lottoData);
-      if (success) {
-        successfulInserts++;
-      }
+      if (success) successfulInserts++;
     }
 
-    setState(() {
-      _isSaving = false;
-    });
+    setState(() => _isSaving = false);
 
-    // แสดงผลลัพธ์
     String message = (successfulInserts == quantity)
         ? "บันทึกข้อมูลสำเร็จ: $successfulInserts รายการ"
         : "บันทึกข้อมูลสำเร็จบางส่วน: $successfulInserts จาก $quantity รายการ";
@@ -96,15 +81,83 @@ class _AdminPagesState extends State<AdminPages> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // ส่วนที่เหลือของโค้ดเดิม ไม่มีการเปลี่ยนแปลงมากนัก
+  /// ------------------ ฟังก์ชันสุ่มรางวัล ------------------
+  Future<void> _randomRewards() async {
+    setState(() => _isSaving = true);
+    bool success = await _apiService.randomRewards();
+    setState(() => _isSaving = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? "สุ่มและบันทึกรางวัลสำเร็จ!" : "สุ่มรางวัลไม่สำเร็จ!",
+        ),
+      ),
+    );
+  }
+
+  /// ------------------ ฟังก์ชันเลือกเลขท้าย 2 ตัว ------------------
+  Future<void> _selectRewardDialog() async {
+    final TextEditingController numberController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("กรอกเลขท้าย 2 ตัว"),
+        content: TextField(
+          controller: numberController,
+          keyboardType: TextInputType.number,
+          maxLength: 2,
+          decoration: const InputDecoration(hintText: "เช่น 45"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final number = numberController.text;
+              if (number.length == 2) {
+                bool success = await _apiService.selectReward({
+                  "number": number,
+                  "rank": "5", // set rank = 5
+                });
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? "บันทึกเลขท้าย 2 ตัวสำเร็จ: $number"
+                            : "ไม่พบลอตเตอรี่เลขท้ายนี้ หรือเกิดข้อผิดพลาด",
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("กรุณากรอกเลขท้าย 2 ตัวให้ถูกต้อง"),
+                  ),
+                );
+              }
+            },
+            child: const Text("บันทึก"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ยกเลิก"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ------------------ UI หลัก ------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: _isSaving
-          ? const Center(
-              child: CircularProgressIndicator(),
-            ) // แสดง loading เมื่อกำลังบันทึก
+          ? const Center(child: CircularProgressIndicator())
           : Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -121,10 +174,8 @@ class _AdminPagesState extends State<AdminPages> {
                   Expanded(
                     child: Center(
                       child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: _buildLotteryCard(),
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: _buildLotteryCard(),
                       ),
                     ),
                   ),
@@ -134,75 +185,63 @@ class _AdminPagesState extends State<AdminPages> {
     );
   }
 
-  // ... (ฟังก์ชัน _onMenuItemSelected, _buildTopAppBar, _buildAdminProfile, _buildLotteryCard, _buildButton เหมือนเดิม)
-
-  // ฟังก์ชันที่แสดง Card สำหรับเพิ่มลอตเตอรี่
+  /// ------------------ Widgets ------------------
   void _showAddLotteryCard(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+      builder: (BuildContext context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15.0),
           ),
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15.0),
-              border: Border.all(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                width: 2,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "เพิ่มจำนวนลอตเตอรี่",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 100, 30, 30),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "เพิ่มจำนวนลอตเตอรี่",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 100, 30, 30),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(height: 20),
+              _buildTextField(
+                "กรอกจำนวนลอตเตอรี่",
+                'จำนวนลอตเตอรี่',
+                _quantityController,
+              ),
+              const SizedBox(height: 10),
+              _buildTextField(
+                "กรอกราคาสลากกินแบ่ง",
+                'ราคาสลากกินแบ่ง',
+                _priceController,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildDialogButton("ยกเลิก", Colors.red, () {
+                    Navigator.of(context).pop();
+                  }),
+                  _buildDialogButton(
+                    "บันทึก",
+                    Colors.blue,
+                    _onSaveButtonPressed,
                   ),
-                ),
-                const SizedBox(height: 20),
-                // เปลี่ยน TextField ให้ใช้ Controller และ Label Text ใหม่
-                _buildTextField(
-                  "กรอกจำนวนลอตเตอรี่",
-                  'จำนวนลอตเตอรี่',
-                  _quantityController,
-                ),
-                const SizedBox(height: 10),
-                _buildTextField(
-                  "กรอกราคาสลากกินแบ่ง",
-                  'ราคาสลากกินแบ่ง',
-                  _priceController,
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildDialogButton("ยกเลิก", Colors.red, () {
-                      Navigator.of(context).pop();
-                    }),
-                    _buildDialogButton(
-                      "บันทึก",
-                      Colors.blue,
-                      _onSaveButtonPressed,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // แก้ไข _buildTextField ให้รับ TextEditingController
   Widget _buildTextField(
     String hintText,
     String labelText,
@@ -216,34 +255,27 @@ class _AdminPagesState extends State<AdminPages> {
           : TextInputType.text,
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: const TextStyle(color: Colors.black),
         hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: const Color(0xFFF0F0F0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.grey, width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.grey, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.blue, width: 2),
+          borderSide: const BorderSide(color: Colors.grey),
         ),
       ),
-      style: const TextStyle(color: Colors.black),
     );
   }
 
-  // ... (ฟังก์ชัน _buildDialogButton เหมือนเดิม)
-  Widget _buildButton(String text, Color bgColor, Color textColor) {
+  Widget _buildButton(
+    String text,
+    Color bgColor,
+    Color textColor,
+    VoidCallback onPressed,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -280,28 +312,39 @@ class _AdminPagesState extends State<AdminPages> {
             style: TextStyle(color: Colors.white, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          ...List.generate(4, (index) {
-            return Container(
+          ...List.generate(
+            4,
+            (index) => Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
               height: 50,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
-            );
-          }),
+            ),
+          ),
           const SizedBox(height: 20),
           Column(
             children: [
-              _buildButton("เลือกรางวัล", Colors.orange, Colors.white),
+              _buildButton(
+                "เลือกรางวัล",
+                Colors.orange,
+                Colors.white,
+                _selectRewardDialog,
+              ),
               const SizedBox(height: 10),
-              _buildButton("สุ่มผลรางวัล", Colors.orange, Colors.white),
+              _buildButton(
+                "สุ่มผลรางวัล",
+                Colors.orange,
+                Colors.white,
+                _randomRewards,
+              ),
               const SizedBox(height: 10),
-              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white),
+              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white, () {
+                // TODO: clear all data API
+              }),
             ],
           ),
         ],
@@ -345,16 +388,10 @@ class _AdminPagesState extends State<AdminPages> {
                   const PopupMenuItem<String>(
                     value: 'add_lottery',
                     child: Text('เพิ่มลอตเตอรี่'),
-                    textStyle: TextStyle(
-                      color: Color.fromARGB(255, 252, 252, 252),
-                    ),
                   ),
                   const PopupMenuItem<String>(
                     value: 'logout',
                     child: Text('ออกจากระบบ'),
-                    textStyle: TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
-                    ),
                   ),
                 ],
                 icon: const Icon(Icons.more_vert, color: Colors.white),
