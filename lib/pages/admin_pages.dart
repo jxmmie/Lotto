@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'dart:math';
 import 'dart:developer';
 
@@ -16,14 +17,28 @@ class _AdminPagesState extends State<AdminPages> {
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final ApiService _apiService = ApiService();
-
+  List<Rewardrank>? _rewardList;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRewards();
+  }
 
   @override
   void dispose() {
     _quantityController.dispose();
     _priceController.dispose();
     super.dispose();
+  }
+
+  // New method to load the reward data
+  Future<void> _loadRewards() async {
+    final rewardList = await _apiService.showreward();
+    setState(() {
+      _rewardList = rewardList;
+    });
   }
 
   /// ------------------ ฟังก์ชันเพิ่มลอตเตอรี่ ------------------
@@ -86,6 +101,7 @@ class _AdminPagesState extends State<AdminPages> {
     setState(() => _isSaving = true);
     bool success = await _apiService.randomRewards();
     setState(() => _isSaving = false);
+    _loadRewards(); // Reload rewards after generating new ones
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -122,6 +138,7 @@ class _AdminPagesState extends State<AdminPages> {
 
                 if (context.mounted) {
                   Navigator.pop(context);
+                  _loadRewards(); // Reload rewards after selection
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -289,6 +306,31 @@ class _AdminPagesState extends State<AdminPages> {
   }
 
   Widget _buildLotteryCard() {
+    // Check if rewardList is not null
+    if (_rewardList == null) {
+      // Show a loading indicator if data is not yet loaded
+      return const Center(child: CircularProgressIndicator());
+    }
+    // This Map will store the reward details in a structured way for display
+    final Map<String, List<Rewardrank>> rewardsByRank = {};
+    for (var reward in _rewardList!) {
+      rewardsByRank.putIfAbsent(reward.rank, () => []).add(reward);
+    }
+
+    // Define the ranks to be displayed in the specified order
+    const List<String> displayOrder = ['1', '2', '3', '4', '5'];
+
+    // Create a list of the display widgets
+    final List<Widget> rewardWidgets = [];
+    for (String rank in displayOrder) {
+      final List<Rewardrank>? rewards = rewardsByRank[rank];
+      if (rewards != null && rewards.isNotEmpty) {
+        for (var reward in rewards) {
+          rewardWidgets.add(_buildRewardRow(reward.rank, reward.number));
+        }
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -299,7 +341,7 @@ class _AdminPagesState extends State<AdminPages> {
       child: Column(
         children: [
           const Text(
-            "จำหน่ายลอตเตอรี่",
+            "ออกผลรางวัลประจำงวด 5 รางวัล",
             style: TextStyle(
               color: Colors.orange,
               fontSize: 20,
@@ -312,19 +354,8 @@ class _AdminPagesState extends State<AdminPages> {
             style: TextStyle(color: Colors.white, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          ...List.generate(
-            4,
-            (index) => Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
+          // This is the new part that displays the rewards from the API
+          ...rewardWidgets,
           const SizedBox(height: 20),
           Column(
             children: [
@@ -346,6 +377,65 @@ class _AdminPagesState extends State<AdminPages> {
                 // TODO: clear all data API
               }),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // A new helper widget to display each reward row.
+  Widget _buildRewardRow(String rank, String number) {
+    // Define a mapping from rank to prize money, as per the image
+    final Map<String, String> rankToPrize = {
+      '1': '6 ล้านบาท',
+      '2': '2 แสนบาท',
+      '3': '8 หมื่นบาท',
+      '4': '4 หมื่นบาท',
+      '5': '2 หมื่นบาท',
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        children: [
+          // Display the rank and prize money
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'รางวัลที่ $rank',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              Text(
+                rankToPrize[rank] ?? '',
+                style: const TextStyle(
+                  color: Colors.lightGreen,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Display the lottery number
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Color(0xFF521F00),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),

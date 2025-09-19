@@ -4,6 +4,7 @@ import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart'
 import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
 import 'package:flutter_application_1/models/reqeuest/register_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -139,6 +140,24 @@ class ApiService {
     } catch (e) {
       log('Error selecting reward: $e');
       return false;
+    }
+  }
+
+  Future<List<Rewardrank>?> showreward() async {
+    try {
+      final url = Uri.parse('$baseUrl/Admin/showrank');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = json.decode(response.body);
+        return jsonList.map((json) => Rewardrank.fromJson(json)).toList();
+      } else {
+        log("Failed to load data: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      log("Error: $e");
+      return null;
     }
   }
 }
