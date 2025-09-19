@@ -1,8 +1,14 @@
+import 'dart:developer';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get_storage/get_storage.dart';
 
 class detail_user extends StatefulWidget {
   const detail_user({super.key});
@@ -12,7 +18,56 @@ class detail_user extends StatefulWidget {
 }
 
 class _CreditUserState extends State<detail_user> {
-  int _selectedIndex = 0; // Current selected index for BottomNavigationBar
+  int _selectedIndex = 4; // Current selected index for BottomNavigationBar
+  final ApiService _api = ApiService();
+  final box = GetStorage();
+  late int uid = 0;
+  var fullname = '';
+  var tel = '';
+  var email = '';
+  var money = '';
+  var account_id = '';
+  @override
+  void initState() {
+    super.initState();
+    uid = box.read('uid') ?? 0;
+    if (uid != 0) {
+      loadUser();
+      loadWallet();
+    }
+  }
+
+  Future<void> loadUser() async {
+    final userData = await _api.getUserByid(uid);
+    if (!mounted) return;
+    if (userData != null) {
+      setState(() {
+        fullname = userData.data.fullname;
+        tel = userData.data.phone; // ถ้าต้องการใช้เบอร์โทร
+        email = userData.data.email; // ถ้าต้องการใช้ email
+      });
+    }
+  }
+
+  Future<void> loadWallet() async {
+    final walletData = await _api.getWalletByid(uid);
+    if (!mounted) return;
+    if (walletData != null) {
+      setState(() {
+        money = walletData.money.toStringAsFixed(2);
+        account_id = maskAccount(walletData.accountId);
+      });
+    }
+  }
+
+  String maskAccount(String account) {
+    if (account.length < 6) return account;
+    // กันกรณีเลขสั้นเกินไป
+
+    String first = account.substring(0, 5); // 123 45
+    String last = account.substring(account.length - 2); // 89
+    return "$first xxx $last";
+  }
 
   void _onItemTapped(int index) {
     Widget page;
@@ -21,7 +76,7 @@ class _CreditUserState extends State<detail_user> {
         page = const MyScreen();
         break;
       case 1:
-        page = const MyWalletnull();
+        page = const Mylotto();
         break;
       case 2:
         page = const CreditPages();
@@ -30,7 +85,7 @@ class _CreditUserState extends State<detail_user> {
         page = const MyWalletdata();
         break;
       case 4:
-        page = const detail_user();
+        page = const UserPages();
         break;
       default:
         page = const MyScreen();
@@ -76,17 +131,17 @@ class _CreditUserState extends State<detail_user> {
               color: const Color(0xffFF8400),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  "เครดิต 9999.99",
-                  style: TextStyle(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -149,51 +204,54 @@ class _CreditUserState extends State<detail_user> {
                           width: 2,
                         ), // เพิ่มขอบ
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "ยอดเครดิตคงเหลือ",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                "9999.99",
-                                style: TextStyle(
+                                money.isNotEmpty ? money : "กำลังโหลด...",
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 30,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text(
                                 "บาท",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 15),
-                          Text(
+                          const SizedBox(height: 15),
+                          const Text(
                             "เลขบัญชี",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
-                            "123 45xxx 89",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
+                            account_id.isNotEmpty ? account_id : "กำลังโหลด...",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
                           ),
                         ],
                       ),
@@ -210,50 +268,56 @@ class _CreditUserState extends State<detail_user> {
                           width: 2,
                         ), // เพิ่มขอบ
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "ชื่อ-สกุล",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            "แมว รวยสุด",
-                            style: TextStyle(
+                            fullname.isNotEmpty ? fullname : "กำลังโหลด...",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 15),
-                          Text(
+                          const SizedBox(height: 15),
+                          const Text(
                             "เบอร์โทรศัพท์",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            "0123456789",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            tel.isNotEmpty ? tel : "กำลังโหลด...",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                            ),
                           ),
-                          SizedBox(height: 15),
-                          Text(
+                          const SizedBox(height: 15),
+                          const Text(
                             "อีเมล",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            "meow@gmail.com",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            email.isNotEmpty ? email : "กำลังโหลด...",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                            ),
                           ),
                         ],
                       ),

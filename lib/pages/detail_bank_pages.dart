@@ -9,7 +9,7 @@ class detail_bank extends StatefulWidget {
 
 class _detailBankState extends State<detail_bank> {
   // เปลี่ยนชื่อ State class
-  int _selectedIndex = 0;
+  int _selectedIndex = 4;
 
   void _onItemTapped(int index) {
     setState(() {

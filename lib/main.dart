@@ -11,6 +11,7 @@ import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,6 +23,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Flutter Demo', home: AdminPages());
+    return const GetMaterialApp(title: 'Flutter Demo', home: Login());
   }
 }

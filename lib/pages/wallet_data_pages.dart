@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 
 class MyWalletdata extends StatefulWidget {
@@ -21,7 +23,7 @@ class _MyWalletdataState extends State<MyWalletdata> {
         page = const MyScreen();
         break;
       case 1:
-        page = const MyWalletnull();
+        page = const Mylotto();
         break;
       case 2:
         page = const CreditPages();
@@ -30,7 +32,7 @@ class _MyWalletdataState extends State<MyWalletdata> {
         page = const MyWalletdata();
         break;
       case 4:
-        page = const detail_user();
+        page = const UserPages();
         break;
       default:
         page = const MyScreen();

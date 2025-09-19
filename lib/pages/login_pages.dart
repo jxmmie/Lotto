@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/ci/api_client.dart';
 import 'package:flutter_application_1/models/reqeuest/login_reqeuest.dart';
 import 'package:flutter_application_1/models/reqeuest/register_request.dart';
+import 'package:flutter_application_1/pages/admin_pages.dart';
 import 'package:flutter_application_1/pages/register_pages.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -17,6 +20,7 @@ class _LoginState extends State<Login> {
   final _emailCtl = TextEditingController();
   final _passCtl = TextEditingController();
   final ApiService _api = ApiService();
+  GetStorage box = GetStorage();
 
   bool _obscure = true;
   bool _loading = false;
@@ -43,16 +47,20 @@ class _LoginState extends State<Login> {
     try {
       final loginReq = LoginRequest(email: email, password: pass);
       final result = await _api.login(loginReq);
+      final role = result?['role'];
+      final uid = result?['uid'];
       if (!mounted) return;
       if (result != null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ ✅')));
         debugPrint('JWT: ${result['token']}');
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MyScreen()),
-        );
+        box.write('uid', uid);
+        if (role == 'admin') {
+          Get.offAll(() => AdminPages());
+        } else {
+          Get.offAll(() => MyScreen());
+        }
       } else {
         ScaffoldMessenger.of(
           context,

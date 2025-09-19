@@ -1,47 +1,65 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
-import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
-import 'package:flutter_application_1/pages/detail_user_pages.dart';
-import 'package:flutter_application_1/pages/myLotto.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
-import 'package:http/http.dart' as http;
+import 'package:get_storage/get_storage.dart';
 
-class MyScreen extends StatefulWidget {
-  const MyScreen({super.key});
+class Mylotto extends StatefulWidget {
+  const Mylotto({super.key});
 
   @override
-  State<MyScreen> createState() => _MyScreenState();
+  State<Mylotto> createState() => _MylottoState();
 }
 
-class _MyScreenState extends State<MyScreen> {
+class _MylottoState extends State<Mylotto> {
+  int _selectedIndex = 1;
   final ApiService _api = ApiService();
-  int _selectedIndex = 0;
-  List<Lottery>? _lotteryList;
-
+  final box = GetStorage();
+  late int uid = 0;
+  List<MyLottoRes> myLottos = [];
+  Timer? _timer;
+  bool _isLoading = true;
   @override
   void initState() {
     super.initState();
-    fetchLotteries();
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (!mounted) return;
+      setState(() {
+        // ทำงานทุก 5 วินาที
+      });
+    });
+    uid = box.read('uid') ?? 0;
+    if (uid != 0) {
+      loadLotto();
+    }
   }
 
-  Future<void> fetchLotteries() async {
+  @override
+  void dispose() {
+    _timer?.cancel(); // ป้องกัน setState หลัง dispose
+    super.dispose();
+  }
+
+  Future<void> loadLotto() async {
     try {
-      final response = await _api.getLotto();
-      if (response != null && response.lotteries.isNotEmpty) {
-        setState(() {
-          _lotteryList = response.lotteries;
-        });
-        log('Lottery list updated successfully.');
-      } else {
-        log('No lotteries found or API returned null.');
-      }
+      final data = await _api.getMyLottobyid(uid); // data: List<MyLottoRes>?
+      if (!mounted) return;
+
+      setState(() {
+        myLottos = data ?? [];
+        _isLoading = false;
+      });
     } catch (e) {
-      log('Error fetching lotteries: $e');
+      print("Error loading lotto: $e");
+      _isLoading = false;
     }
   }
 
@@ -215,6 +233,7 @@ class _MyScreenState extends State<MyScreen> {
                     const SizedBox(height: 16),
                     // การ์ดตลาดลอตเตอรี่
                     Container(
+                      height: 280,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xff944C2B),
@@ -223,123 +242,52 @@ class _MyScreenState extends State<MyScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'ตลาดลอตเตอรี่',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          Center(
+                            child: const Text(
+                              'ลอตเตอรี่ของคุณ',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // ช่องกรอกตัวเลข
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 6,
-                                    crossAxisSpacing: 5,
-                                    mainAxisSpacing: 5,
-                                    childAspectRatio: 1,
-                                  ),
-                              itemCount: 6,
-                              itemBuilder: (context, index) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '',
-                                      style: TextStyle(fontSize: 24),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // ปุ่ม
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.shuffle,
+                          // แสดงสถานะโหลด / ไม่มีข้อมูล
+                          _isLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
                                     color: Colors.white,
                                   ),
-                                  label: const Text(
-                                    'สุ่มตัวเลข',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeBrown,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.search,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'ค้นหา',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // รายการลอตเตอรี่
-                          _lotteryList != null
-                              ? GridView.builder(
+                                )
+                              : myLottos.isNotEmpty
+                              ? ListView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        crossAxisSpacing: 10,
-                                        mainAxisSpacing: 10,
-                                        childAspectRatio: 2,
-                                      ),
-                                  itemCount: _lotteryList!.length,
+                                  itemCount: myLottos.length,
                                   itemBuilder: (context, index) {
-                                    final lottery = _lotteryList![index];
-                                    return _marketLotteryBox(
-                                      lottery.number,
-                                      lottery.price,
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
+                                      child: _myLottoBox(
+                                        myLottos[index].number,
+                                      ),
                                     );
                                   },
                                 )
                               : const Center(
-                                  child: CircularProgressIndicator(),
+                                  child: Text(
+                                    "คุณยังไม่มีลอตเตอรี่",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -347,6 +295,7 @@ class _MyScreenState extends State<MyScreen> {
           ),
         ),
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
@@ -417,43 +366,31 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  Widget _marketLotteryBox(String number, double price) {
-    // UI for 'Lottery Market' section (shows actual number and price)
+  Widget _myLottoBox(String number) {
     return Container(
-      width: 10,
-      padding: const EdgeInsets.all(0),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE4AD6F),
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-            children: [
-              Text(
-                '฿${price.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text(
-              number,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+        color: const Color(0xFFE4AD6F), // สีพื้นหลัง
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
           ),
         ],
+      ),
+      child: Center(
+        child: Text(
+          number, // แสดงเลขทั้งหมดเป็น string เดียว
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            letterSpacing: 2, // เว้นช่องระหว่างตัวเลขเหมือนรูป
+          ),
+        ),
       ),
     );
   }

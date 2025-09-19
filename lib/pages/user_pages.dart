@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/credit_pages.dart';
+import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/myLotto.dart';
+import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/pages/wallet_data_pages.dart';
+import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+import 'package:get/get.dart';
 
 class UserPages extends StatefulWidget {
   const UserPages({super.key});
@@ -8,12 +15,34 @@ class UserPages extends StatefulWidget {
 }
 
 class _UserPagesState extends State<UserPages> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 4;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    Widget page;
+    switch (index) {
+      case 0:
+        page = const MyScreen();
+        break;
+      case 1:
+        page = const Mylotto();
+        break;
+      case 2:
+        page = const CreditPages();
+        break;
+      case 3:
+        page = const MyWalletdata();
+        break;
+      case 4:
+        page = const UserPages();
+        break;
+      default:
+        page = const MyScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override
@@ -99,52 +128,7 @@ class _UserPagesState extends State<UserPages> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // กล่องโปรไฟล์
-                        Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.symmetric(vertical: 20),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xffE8940E),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFF521F00),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                "assets/logo-text.png",
-                                height: 80,
-                                width: 80,
-                              ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Meow",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "อีเมล: meow@gmail.com",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // กล่องข้อมูลสมาชิก
+                        const SizedBox(height: 90),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -153,7 +137,7 @@ class _UserPagesState extends State<UserPages> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Text(
                                 "ข้อมูลสมาชิก",
@@ -161,6 +145,17 @@ class _UserPagesState extends State<UserPages> {
                                   color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                height: 130,
+                                width: 130,
+                                decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage("assets/logo.png"),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -177,35 +172,31 @@ class _UserPagesState extends State<UserPages> {
                                   Icons.chevron_right,
                                   color: Colors.white,
                                 ),
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(detail_user());
+                                },
                               ),
-                              const Divider(color: Colors.white54),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.account_balance_outlined,
-                                  color: Colors.white,
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xff890002),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+
+                                  child: const Text(
+                                    "ออกจากระบบ",
+                                    style: TextStyle(fontSize: 17),
+                                  ),
                                 ),
-                                title: const Text(
-                                  "บัญชีธนาคาร",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                trailing: const Icon(
-                                  Icons.chevron_right,
-                                  color: Colors.white,
-                                ),
-                                onTap: () {},
-                              ),
-                              const Divider(color: Colors.white54),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.logout,
-                                  color: Colors.white,
-                                ),
-                                title: const Text(
-                                  "ออกจากระบบ",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onTap: () {},
                               ),
                             ],
                           ),
