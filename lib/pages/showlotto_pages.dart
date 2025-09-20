@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
 import 'package:flutter_application_1/pages/myLotto.dart';
@@ -24,6 +25,9 @@ class _MyScreenState extends State<MyScreen> {
   final ApiService _api = ApiService();
   int _selectedIndex = 0;
   List<Lottery>? _lotteryList;
+  Lottery? _randomLottery;
+  List<String> _inputNumbers = List.filled(6, '');
+  List<Rewardrank>? _rewardList;
   final box = GetStorage();
   late int uid = 0;
   var money = '';
@@ -36,6 +40,7 @@ class _MyScreenState extends State<MyScreen> {
       loadWallet();
     }
     fetchLotteries();
+    _loadRewards();
   }
 
   Future<void> fetchLotteries() async {
@@ -54,6 +59,20 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
+  Future<void> _loadRewards() async {
+    try {
+      final rewardList = await _api.showreward();
+      if (mounted) {
+        setState(() {
+          _rewardList = rewardList;
+        });
+        log('Rewards loaded successfully: ${rewardList?.length ?? 0} rewards');
+      }
+    } catch (e) {
+      log('Error loading rewards: $e');
+    }
+  }
+
   Future<void> loadWallet() async {
     final walletData = await _api.getWalletByid(uid);
     if (!mounted) return;
@@ -63,6 +82,164 @@ class _MyScreenState extends State<MyScreen> {
         box.write('wallet', money);
       });
     }
+  }
+
+  // --- ฟังก์ชันค้นหาลอตเตอรี่ตามเลขที่กรอก ---
+  void _searchLottery() {
+    if (_lotteryList == null) return;
+
+    // ถ้าไม่มีเลขกรอกเลย ให้แสดงลอตเตอรี่ทั้งหมด
+    if (_inputNumbers.every((num) => num.isEmpty)) {
+      fetchLotteries();
+      setState(() {
+        _randomLottery = null;
+      });
+      return;
+    }
+
+    // กรองเลขตามตำแหน่งที่กรอก
+    final results = _lotteryList!.where((lotto) {
+      for (int i = 0; i < _inputNumbers.length; i++) {
+        if (_inputNumbers[i].isNotEmpty &&
+            lotto.number[i] != _inputNumbers[i]) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    setState(() {
+      _randomLottery = null;
+      _lotteryList = results;
+    });
+  }
+
+  // ฟังก์ชันสำหรับหารางวัลตาม rank (สามารถมีหลายรางวัลต่อ rank)
+  List<String> _getRewardNumbers(String rank) {
+    if (_rewardList == null) return [];
+
+    return _rewardList!
+        .where((reward) => reward.rank.toString() == rank)
+        .map((reward) => reward.number)
+        .toList();
+  }
+
+  // ฟังก์ชันสำหรับหารางวัลเดี่ยวตาม rank (สำหรับรางวัลที่ 1)
+  String? _getRewardNumber(String rank) {
+    final rewards = _getRewardNumbers(rank);
+    return rewards.isNotEmpty ? rewards.first : null;
+  }
+
+  // ฟังก์ชันสำหรับสร้างการแสดงผลรางวัลทั้งหมด (เฉพาะรางวัลที่ 1, 2, 3)
+  List<Widget> _buildAllRewards() {
+    if (_rewardList == null || _rewardList!.isEmpty) {
+      return [_buildNoRewardsDisplay()];
+    }
+
+    List<Widget> rewardWidgets = [];
+
+    // จัดกลุ่มรางวัลตาม rank
+    Map<String, List<String>> rewardsByRank = {};
+    for (var reward in _rewardList!) {
+      String rank = reward.rank.toString();
+      if (!rewardsByRank.containsKey(rank)) {
+        rewardsByRank[rank] = [];
+      }
+      rewardsByRank[rank]!.add(reward.number);
+    }
+
+    // แสดงเฉพาะรางวัลที่ 1, 2, 3
+    List<String> rankOrder = ['1', '2', '3'];
+    bool hasAnyReward = false;
+
+    for (String rank in rankOrder) {
+      List<String>? numbers = rewardsByRank[rank];
+      if (numbers != null && numbers.isNotEmpty) {
+        hasAnyReward = true;
+        for (String number in numbers) {
+          rewardWidgets.add(_prizeBox('รางวัลที่ $rank', number));
+          rewardWidgets.add(const SizedBox(height: 10));
+        }
+      }
+    }
+
+    // ถ้าไม่มีรางวัลเลย แสดงรางวัลเปล่า
+    if (!hasAnyReward) {
+      return [_buildNoRewardsDisplay()];
+    }
+
+    return rewardWidgets;
+  }
+
+  // ฟังก์ชันสำหรับแสดงเมื่อไม่มีรางวัل
+  Widget _buildNoRewardsDisplay() {
+    return Column(
+      children: [
+        Center(child: _prizeBox('รางวัลที่ 1', null)),
+        const SizedBox(height: 10),
+        _prizeBox('รางวัลที่ 2', null),
+        const SizedBox(height: 10),
+        _prizeBox('รางวัลที่ 3', null),
+      ],
+    );
+  }
+
+  Widget _buildRewardRow(String rank, String number) {
+    // Define a mapping from rank to prize money, as per the image
+    final Map<String, String> rankToPrize = {
+      '1': '6 ล้านบาท',
+      '2': '2 แสนบาท',
+      '3': '8 หมื่นบาท',
+      '4': '4 หมื่นบาท',
+      '5': '2 หมื่นบาท',
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        children: [
+          // Display the rank and prize money
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'รางวัลที่ $rank',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              Text(
+                rankToPrize[rank] ?? '',
+                style: const TextStyle(
+                  color: Colors.lightGreen,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Display the lottery number
+          Container(
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Color(0xFF521F00),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _marketLotteryBox(
@@ -119,8 +296,8 @@ class _MyScreenState extends State<MyScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("ซื้อสำเร็จ!")),
                       );
-                      fetchLotteries(); //โหลดลิสต์ใหม่
-                      loadWallet(); //อัปเดตเงินในกระเป๋า
+                      fetchLotteries(); // โหลดลิสต์ใหม่
+                      loadWallet(); // อัปเดตเงินในกระเป๋า
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("ซื้อไม่สำเร็จ!")),
@@ -163,7 +340,6 @@ class _MyScreenState extends State<MyScreen> {
                 ),
                 child: Column(
                   children: [
-                    // Price section
                     Padding(
                       padding: const EdgeInsets.only(top: 8, right: 12),
                       child: Align(
@@ -178,7 +354,6 @@ class _MyScreenState extends State<MyScreen> {
                         ),
                       ),
                     ),
-                    // Lottery number
                     Expanded(
                       child: Center(
                         child: Text(
@@ -196,7 +371,6 @@ class _MyScreenState extends State<MyScreen> {
                 ),
               ),
             ),
-            // SOLD label positioned like in the image
             if (status == "sold")
               Positioned(
                 top: 0,
@@ -286,7 +460,6 @@ class _MyScreenState extends State<MyScreen> {
                   color: Colors.white,
                   size: 20,
                 ),
-
                 const SizedBox(width: 6),
                 Text(
                   money.isNotEmpty ? money : "กำลังโหลด...",
@@ -312,7 +485,6 @@ class _MyScreenState extends State<MyScreen> {
           ),
           child: Stack(
             children: [
-              // พื้นหลังลายเท้าแมว
               Positioned(
                 top: 30,
                 left: -20,
@@ -329,13 +501,11 @@ class _MyScreenState extends State<MyScreen> {
                   child: Image.asset("assets/teen2.png", width: 230),
                 ),
               ),
-              // เนื้อหา UI
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    // การ์ดรางวัลที่ออก
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -357,7 +527,9 @@ class _MyScreenState extends State<MyScreen> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  _loadRewards(); // Refresh rewards
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,
                                   shape: RoundedRectangleBorder(
@@ -372,30 +544,12 @@ class _MyScreenState extends State<MyScreen> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Center(child: _prizeBox('รางวัลที่ 1', null)),
-                          const SizedBox(height: 10),
-                          GridView(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 2.2,
-                                ),
-                            children: [
-                              _prizeBox('รางวัลที่ 2', null),
-                              _prizeBox('รางวัลที่ 3', null),
-                              _prizeBox('รางวัลที่ 4', null),
-                              _prizeBox('รางวัลที่ 5', null),
-                            ],
-                          ),
+                          // แสดงรางวัลแบบใหม่ - แยกแถวตามจำนวนรางวัลจริง (เฉพาะรางวัลที่ 1, 2, 3)
+                          ..._buildAllRewards(),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // การ์ดตลาดลอตเตอรี่
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -414,7 +568,7 @@ class _MyScreenState extends State<MyScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // ช่องกรอกตัวเลข
+                          // 🔹 ช่องกรอกตัวเลข 6 หลัก
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -433,28 +587,57 @@ class _MyScreenState extends State<MyScreen> {
                                   ),
                               itemCount: 6,
                               itemBuilder: (context, index) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '',
-                                      style: TextStyle(fontSize: 24),
+                                // ช่องกรอกเลขแต่ละช่อง
+                                return TextField(
+                                  textAlign: TextAlign.center,
+                                  maxLength: 1,
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _inputNumbers[index] = val;
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    counterText: "",
+                                    filled: true,
+                                    fillColor: Colors.grey[200],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
                                     ),
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 );
                               },
                             ),
                           ),
+
                           const SizedBox(height: 10),
-                          // ปุ่ม
                           Row(
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    // การสุ่มเลข
+                                    if (_lotteryList != null &&
+                                        _lotteryList!.isNotEmpty) {
+                                      final available = _lotteryList!
+                                          .where(
+                                            (lotto) => lotto.status != "sold",
+                                          )
+                                          .toList();
+                                      if (available.isNotEmpty) {
+                                        final random =
+                                            (available..shuffle()).first;
+                                        setState(() {
+                                          _randomLottery = random;
+                                        });
+                                      }
+                                    }
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                     shape: RoundedRectangleBorder(
@@ -474,7 +657,7 @@ class _MyScreenState extends State<MyScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () {},
+                                  onPressed: _searchLottery,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: themeBrown,
                                     shape: RoundedRectangleBorder(
@@ -494,33 +677,44 @@ class _MyScreenState extends State<MyScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          // รายการลอตเตอรี่
-                          _lotteryList != null
-                              ? GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        crossAxisSpacing: 10,
-                                        mainAxisSpacing: 10,
-                                        childAspectRatio: 2,
-                                      ),
-                                  itemCount: _lotteryList!.length,
-                                  itemBuilder: (context, index) {
-                                    final lottery = _lotteryList![index];
-                                    return _marketLotteryBox(
-                                      context,
-                                      lottery.number,
-                                      lottery.price,
-                                      lottery.status,
-                                      lottery.lid,
-                                    );
-                                  },
-                                )
-                              : const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+
+                          //  ถ้ามีสุ่มแล้ว แสดงแค่ 1 การ์ด
+                          if (_randomLottery != null)
+                            _marketLotteryBox(
+                              context,
+                              _randomLottery!.number,
+                              _randomLottery!.price,
+                              _randomLottery!.status,
+                              _randomLottery!.lid,
+                            )
+                          else
+                            (_lotteryList != null && _lotteryList!.isNotEmpty
+                                ? GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 10,
+                                          mainAxisSpacing: 10,
+                                          childAspectRatio: 2,
+                                        ),
+                                    itemCount: _lotteryList!.length,
+                                    itemBuilder: (context, index) {
+                                      final lottery = _lotteryList![index];
+                                      return _marketLotteryBox(
+                                        context,
+                                        lottery.number,
+                                        lottery.price,
+                                        lottery.status,
+                                        lottery.lid,
+                                      );
+                                    },
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(),
+                                  )),
                         ],
                       ),
                     ),
@@ -569,7 +763,6 @@ class _MyScreenState extends State<MyScreen> {
   }
 
   Widget _prizeBox(String title, String? number) {
-    // UI for 'Winning Numbers' section (shows 'รอผล...')
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(

@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
@@ -26,9 +27,11 @@ class _MylottoState extends State<Mylotto> {
   final box = GetStorage();
   late int uid = 0;
   List<MyLottoRes> myLottos = [];
+  List<Rewardrank>? _rewardList;
   Timer? _timer;
   bool _isLoading = true;
   var money = '';
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +46,7 @@ class _MylottoState extends State<Mylotto> {
     if (uid != 0) {
       loadLotto();
     }
+    _loadRewards(); // เพิ่มการโหลดรางวัล
   }
 
   @override
@@ -53,7 +57,7 @@ class _MylottoState extends State<Mylotto> {
 
   Future<void> loadLotto() async {
     try {
-      final data = await _api.getMyLottobyid(uid); // data: List<MyLottoRes>?
+      final data = await _api.getMyLottobyid(uid);
       if (!mounted) return;
 
       setState(() {
@@ -64,6 +68,74 @@ class _MylottoState extends State<Mylotto> {
       print("Error loading lotto: $e");
       _isLoading = false;
     }
+  }
+
+  Future<void> _loadRewards() async {
+    try {
+      final rewardList = await _api.showreward();
+      if (mounted) {
+        setState(() {
+          _rewardList = rewardList;
+        });
+        log('Rewards loaded successfully: ${rewardList?.length ?? 0} rewards');
+      }
+    } catch (e) {
+      log('Error loading rewards: $e');
+    }
+  }
+
+  // ฟังก์ชันสำหรับสร้างการแสดงผลรางวัลทั้งหมด (เฉพาะรางวัลที่ 1, 2, 3)
+  List<Widget> _buildAllRewards() {
+    if (_rewardList == null || _rewardList!.isEmpty) {
+      return [_buildNoRewardsDisplay()];
+    }
+
+    List<Widget> rewardWidgets = [];
+
+    // จัดกลุ่มรางวัลตาม rank
+    Map<String, List<String>> rewardsByRank = {};
+    for (var reward in _rewardList!) {
+      String rank = reward.rank.toString();
+      if (!rewardsByRank.containsKey(rank)) {
+        rewardsByRank[rank] = [];
+      }
+      rewardsByRank[rank]!.add(reward.number);
+    }
+
+    // แสดงเฉพาะรางวัลที่ 1, 2, 3
+    List<String> rankOrder = ['1', '2', '3'];
+    bool hasAnyReward = false;
+
+    for (String rank in rankOrder) {
+      List<String>? numbers = rewardsByRank[rank];
+      if (numbers != null && numbers.isNotEmpty) {
+        hasAnyReward = true;
+        for (String number in numbers) {
+          rewardWidgets.add(_prizeBox('รางวัลที่ $rank', number));
+          rewardWidgets.add(const SizedBox(height: 10));
+        }
+      }
+    }
+
+    // ถ้าไม่มีรางวัลเลย แสดงรางวัลเปล่า
+    if (!hasAnyReward) {
+      return [_buildNoRewardsDisplay()];
+    }
+
+    return rewardWidgets;
+  }
+
+  // ฟังก์ชันสำหรับแสดงเมื่อไม่มีรางวัล
+  Widget _buildNoRewardsDisplay() {
+    return Column(
+      children: [
+        Center(child: _prizeBox('รางวัลที่ 1', null)),
+        const SizedBox(height: 10),
+        _prizeBox('รางวัลที่ 2', null),
+        const SizedBox(height: 10),
+        _prizeBox('รางวัลที่ 3', null),
+      ],
+    );
   }
 
   void _onItemTapped(int index) {
@@ -123,7 +195,6 @@ class _MylottoState extends State<Mylotto> {
                   color: Colors.white,
                   size: 20,
                 ),
-
                 const SizedBox(width: 6),
                 Text(
                   money.isNotEmpty ? money : "กำลังโหลด...",
@@ -138,7 +209,6 @@ class _MylottoState extends State<Mylotto> {
         ],
       ),
 
-      // ให้ Container หลักมีความสูงขั้นต่ำเท่าหน้าจอ (ไม่ให้เห็นพื้นสีขาวด้านล่าง)
       body: SingleChildScrollView(
         child: Container(
           decoration: const BoxDecoration(
@@ -151,7 +221,6 @@ class _MylottoState extends State<Mylotto> {
           ),
           child: Stack(
             children: [
-              // พื้นหลังลายเท้าแมว
               Positioned(
                 top: 30,
                 left: -20,
@@ -173,7 +242,6 @@ class _MylottoState extends State<Mylotto> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    // การ์ดรางวัลที่ออก
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -195,7 +263,10 @@ class _MylottoState extends State<Mylotto> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  // ไปยังหน้า MyWalletdata
+                                  Get.to(const MyWalletdata());
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,
                                   shape: RoundedRectangleBorder(
@@ -210,25 +281,8 @@ class _MylottoState extends State<Mylotto> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Center(child: _prizeBox('รางวัลที่ 1', null)),
-                          const SizedBox(height: 10),
-                          GridView(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 2.2,
-                                ),
-                            children: [
-                              _prizeBox('รางวัลที่ 2', null),
-                              _prizeBox('รางวัลที่ 3', null),
-                              _prizeBox('รางวัลที่ 4', null),
-                              _prizeBox('รางวัลที่ 5', null),
-                            ],
-                          ),
+                          // แสดงรางวัลแบบใหม่ - แยกแถวตามจำนวนรางวัลจริง (เฉพาะรางวัลที่ 1, 2, 3)
+                          ..._buildAllRewards(),
                         ],
                       ),
                     ),
@@ -282,7 +336,6 @@ class _MylottoState extends State<Mylotto> {
                         ],
                       ),
                     ),
-                    // เพิ่มช่องว่างท้ายหน้าเผื่อความสวยงาม
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -328,7 +381,6 @@ class _MylottoState extends State<Mylotto> {
   }
 
   Widget _prizeBox(String title, String? number) {
-    // UI for 'Winning Numbers' section (shows 'รอผล...')
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -363,14 +415,11 @@ class _MylottoState extends State<Mylotto> {
 
   Widget _myLottoBox(String number) {
     return Container(
-      constraints: BoxConstraints(
-        minHeight: 60,
-        maxHeight: 80, // จำกัดความสูงไม่ให้ล้นจอ
-      ),
+      constraints: BoxConstraints(minHeight: 60, maxHeight: 80),
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE4AD6F), // สีพื้นหลัง
+        color: const Color(0xFFE4AD6F),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
