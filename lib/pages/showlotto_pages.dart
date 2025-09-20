@@ -65,6 +65,170 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
+  Widget _marketLotteryBox(
+    BuildContext context,
+    String number,
+    double price,
+    String status,
+    int lid,
+  ) {
+    return InkWell(
+      onTap: () {
+        if (status == "sold") return; // ถ้า sold ห้ามซื้อ
+        // Show Card ยืนยันการซื้อ
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Center(
+                child: Text(
+                  "คุณต้องการซื้อ ล็อตเตอรี่\nใบนี้ ใช่หรือไม่ ?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              content: const Text(
+                "ระบบจะหักเครดิตคุณอัตโนมัติ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54),
+              ),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("ยกเลิก"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    bool result = await _api.buyLotto(uid, lid);
+                    if (result) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("ซื้อสำเร็จ!")),
+                      );
+                      fetchLotteries(); //โหลดลิสต์ใหม่
+                      loadWallet(); //อัปเดตเงินในกระเป๋า
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("ซื้อไม่สำเร็จ!")),
+                      );
+                    }
+                  },
+                  child: const Text("ยืนยัน"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Container(
+        width: 140,
+        height: 90,
+        decoration: BoxDecoration(
+          color: const Color(0xFF8B4513),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 8,
+              top: 8,
+              right: 8,
+              bottom: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD2B48C),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  children: [
+                    // Price section
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, right: 12),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '฿${price.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Lottery number
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          number,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // SOLD label positioned like in the image
+            if (status == "sold")
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    "SOLD",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _onItemTapped(int index) {
     Widget page;
     switch (index) {
@@ -89,25 +253,6 @@ class _MyScreenState extends State<MyScreen> {
 
     Get.to(page);
   }
-
-  // Future<bool> buyLotto(String number, double price) async {
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse("$baseUrl/lotto/buy"),
-  //       headers: {"Content-Type": "application/json"},
-  //       body: jsonEncode({"number": number, "price": price}),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       return true;
-  //     } else {
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     print("Error buyLotto: $e");
-  //     return false;
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -369,6 +514,7 @@ class _MyScreenState extends State<MyScreen> {
                                       lottery.number,
                                       lottery.price,
                                       lottery.status,
+                                      lottery.lid,
                                     );
                                   },
                                 )
@@ -450,161 +596,6 @@ class _MyScreenState extends State<MyScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _marketLotteryBox(
-    BuildContext context,
-    String number,
-    double price,
-    String status,
-  ) {
-    return InkWell(
-      onTap: () {
-        if (status == "sold") return; // ถ้า sold ห้ามซื้อ
-        // Show Card ยืนยันการซื้อ
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: const Center(
-                child: Text(
-                  "คุณต้องการซื้อ ล็อตเตอรี่\nใบนี้ ใช่หรือไม่ ?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              content: const Text(
-                "ระบบจะหักเครดิตคุณอัตโนมัติ",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black54),
-              ),
-              actionsAlignment: MainAxisAlignment.spaceEvenly,
-              actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("ยกเลิก"),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    // รอ api ซื้อ
-                  },
-                  child: const Text("ยืนยัน"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      child: Container(
-        width: 140,
-        height: 90,
-        decoration: BoxDecoration(
-          color: const Color(0xFF8B4513), // Brown background like the image
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Inner ticket card
-            Positioned(
-              left: 8,
-              top: 8,
-              right: 8,
-              bottom: 8,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(
-                    0xFFD2B48C,
-                  ), // Light brown/beige like the ticket
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(
-                  children: [
-                    // Price section
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8, right: 12),
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: Text(
-                          '฿${price.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Lottery number
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          number,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // SOLD label positioned like in the image
-            if (status == "sold")
-              Positioned(
-                top: 0,
-                left: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    "SOLD",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),

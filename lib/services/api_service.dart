@@ -12,7 +12,7 @@ import 'package:flutter_application_1/models/reqeuest/token.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://10.0.2.2:8080';
+  final String baseUrl = 'https://lotto-api-w5f1.onrender.com';
 
   // Register
   Future<bool> register(RegisterRequest request) async {
@@ -28,11 +28,11 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       TakeUid.uid = data['uid']; // เก็บ uid ใน Session
-      
+
       // ถ้า API ส่ง uid กลับมา แสดงว่าลง DB สำเร็จ
       if (data['uid'] != null) {
         print('Register success: ${response.body}');
-        return true ;
+        return true;
       } else {
         print('Register failed (API returned invalid data): ${response.body}');
         return false;
@@ -220,12 +220,12 @@ class ApiService {
     }
   }
 
-   // Update Wallet (ตั้งเลขบัญชี + เซตยอดเงิน)
+  // Update Wallet (ตั้งเลขบัญชี + เซตยอดเงิน)
   Future<bool> updateWallet({
     required int uid,
-    String? bank,          // ไม่บังคับ
-    String? accountId,     // ไม่บังคับ
-    double? money,         // ไม่บังคับ
+    String? bank, // ไม่บังคับ
+    String? accountId, // ไม่บังคับ
+    double? money, // ไม่บังคับ
   }) async {
     try {
       final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
@@ -258,6 +258,29 @@ class ApiService {
       return res.statusCode == 200;
     } catch (e) {
       log('updateWallet error: $e');
+      return false;
+    }
+  }
+
+  // Buy Lotto
+  Future<bool> buyLotto(int uid, int lid) async {
+    final body = jsonEncode({'uid': uid, 'lid': lid});
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/Lottery/buy'),
+      headers: {"Content-Type": "application/json"},
+      body: body,
+    );
+
+    log('Status code: ${response.statusCode}');
+    log('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      log('Buy Lotto success!');
+      return true;
+    } else {
+      log(
+        'Buy Lotto failed. Status: ${response.statusCode}, Body: ${response.body}',
+      );
       return false;
     }
   }
