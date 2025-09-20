@@ -51,8 +51,8 @@ class _RegisternextPagesState extends State<RegisternextPages> {
       money: money,
     );
     final result = await _api.updateWallet(
-      widget.uid!,           // ส่ง uid เป็น positional argument
-      req,                   // ส่ง UpdateWalletRequest object เป็น positional argument
+      widget.uid!,
+       req,
     );
     setState(() => _loading = false);
 
