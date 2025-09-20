@@ -37,26 +37,25 @@ class WalletByuidRes {
   };
 }
 
-class WalletUpdateResponse {
-  final String message;
-  final int wid;
-  final int uid;
-  final double money;
+class UpdateWalletResponse {
+  final bool success;
+  final String? message;
+  final double? money; // เงินล่าสุดหลังอัพเดต
   final String? accountId;
-  WalletUpdateResponse({
-    required this.message,
-    required this.wid,
-    required this.uid,
-    required this.money,
+
+  UpdateWalletResponse({
+    required this.success,
+    this.message,
+    this.money,
     this.accountId,
   });
 
-  factory WalletUpdateResponse.fromJson(Map<String, dynamic> j) =>
-      WalletUpdateResponse(
-        message: j['message'] as String,
-        wid: j['wid'] as int,
-        uid: j['uid'] as int,
-        money: (j['money'] as num).toDouble(),
-        accountId: j['account_id'] as String?,
-      );
+  factory UpdateWalletResponse.fromJson(Map<String, dynamic> json) {
+    return UpdateWalletResponse(
+      success: json['success'] ?? false,
+      message: json['message'],
+      money: (json['money'] is num) ? (json['money'] as num).toDouble() : null,
+      accountId: json['account_id'],
+    );
+  }
 }
