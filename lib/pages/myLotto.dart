@@ -97,7 +97,7 @@ class _MylottoState extends State<Mylotto> {
     const themeOrange = Color(0xffFF8400);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color(0xFFFF8400),
       appBar: AppBar(
         backgroundColor: themeBrown,
         elevation: 0,
@@ -123,6 +123,7 @@ class _MylottoState extends State<Mylotto> {
                   color: Colors.white,
                   size: 20,
                 ),
+
                 const SizedBox(width: 6),
                 Text(
                   money.isNotEmpty ? money : "กำลังโหลด...",
@@ -136,6 +137,8 @@ class _MylottoState extends State<Mylotto> {
           ),
         ],
       ),
+
+      // ให้ Container หลักมีความสูงขั้นต่ำเท่าหน้าจอ (ไม่ให้เห็นพื้นสีขาวด้านล่าง)
       body: SingleChildScrollView(
         child: Container(
           decoration: const BoxDecoration(
@@ -165,7 +168,6 @@ class _MylottoState extends State<Mylotto> {
                   child: Image.asset("assets/teen2.png", width: 230),
                 ),
               ),
-              // เนื้อหา UI
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -230,10 +232,8 @@ class _MylottoState extends State<Mylotto> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // การ์ดตลาดลอตเตอรี่
+                    const SizedBox(height: 20),
                     Container(
-                      height: 280,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xff944C2B),
@@ -252,8 +252,7 @@ class _MylottoState extends State<Mylotto> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          // แสดงสถานะโหลด / ไม่มีข้อมูล
+                          const SizedBox(height: 20),
                           _isLoading
                               ? const Center(
                                   child: CircularProgressIndicator(
@@ -261,20 +260,15 @@ class _MylottoState extends State<Mylotto> {
                                   ),
                                 )
                               : myLottos.isNotEmpty
-                              ? ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: myLottos.length,
-                                  itemBuilder: (context, index) {
+                              ? Column(
+                                  children: myLottos.map((lotto) {
                                     return Padding(
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 4,
                                       ),
-                                      child: _myLottoBox(
-                                        myLottos[index].number,
-                                      ),
+                                      child: _myLottoBox(lotto.number),
                                     );
-                                  },
+                                  }).toList(),
                                 )
                               : const Center(
                                   child: Text(
@@ -288,6 +282,8 @@ class _MylottoState extends State<Mylotto> {
                         ],
                       ),
                     ),
+                    // เพิ่มช่องว่างท้ายหน้าเผื่อความสวยงาม
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -295,7 +291,6 @@ class _MylottoState extends State<Mylotto> {
           ),
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
@@ -368,6 +363,10 @@ class _MylottoState extends State<Mylotto> {
 
   Widget _myLottoBox(String number) {
     return Container(
+      constraints: BoxConstraints(
+        minHeight: 60,
+        maxHeight: 80, // จำกัดความสูงไม่ให้ล้นจอ
+      ),
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(

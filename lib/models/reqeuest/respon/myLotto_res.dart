@@ -11,14 +11,14 @@ String myLottoResToJson(List<MyLottoRes> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class MyLottoRes {
-  int buyid;
+  int oid;
   int lid;
   String number;
   int price;
   String status;
 
   MyLottoRes({
-    required this.buyid,
+    required this.oid,
     required this.lid,
     required this.number,
     required this.price,
@@ -26,15 +26,15 @@ class MyLottoRes {
   });
 
   factory MyLottoRes.fromJson(Map<String, dynamic> json) => MyLottoRes(
-    buyid: json["buyid"] as int,
-    lid: json["lid"] as int,
-    number: json["number"] as String,
-    price: (json["price"] as num).toInt(), // แปลง double -> int
-    status: json["status"] as String,
+    oid: json["oid"],
+    lid: json["lid"],
+    number: json["number"],
+    price: (json["price"] as num).toInt(),
+    status: json["status"],
   );
 
   Map<String, dynamic> toJson() => {
-    "buyid": buyid,
+    "oid": oid,
     "lid": lid,
     "number": number,
     "price": price,
