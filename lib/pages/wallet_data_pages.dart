@@ -5,6 +5,8 @@ import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class MyWalletdata extends StatefulWidget {
   const MyWalletdata({super.key});
@@ -14,7 +16,15 @@ class MyWalletdata extends StatefulWidget {
 }
 
 class _MyWalletdataState extends State<MyWalletdata> {
-  int _selectedIndex = 3; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
+  int _selectedIndex = 3;
+  final box = GetStorage();
+  var money = '';
+
+  @override
+  void initState() {
+    super.initState();
+    money = (box.read('wallet') ?? 0).toString();
+  }
 
   void _onItemTapped(int index) {
     Widget page;
@@ -38,10 +48,7 @@ class _MyWalletdataState extends State<MyWalletdata> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(page);
   }
 
   @override
@@ -80,17 +87,17 @@ class _MyWalletdataState extends State<MyWalletdata> {
               color: themeOrange,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  "เครดิต 9999.99",
-                  style: TextStyle(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

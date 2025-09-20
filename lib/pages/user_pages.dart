@@ -6,6 +6,7 @@ import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class UserPages extends StatefulWidget {
   const UserPages({super.key});
@@ -16,6 +17,14 @@ class UserPages extends StatefulWidget {
 
 class _UserPagesState extends State<UserPages> {
   int _selectedIndex = 4;
+  final box = GetStorage();
+  var money = '';
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    money = (box.read('waller').toString());
+  }
 
   void _onItemTapped(int index) {
     Widget page;
@@ -39,10 +48,7 @@ class _UserPagesState extends State<UserPages> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(() => page);
   }
 
   @override
@@ -69,17 +75,17 @@ class _UserPagesState extends State<UserPages> {
               color: const Color(0xffFF8400),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  "เครดิต 9999.99",
-                  style: TextStyle(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

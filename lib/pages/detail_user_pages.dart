@@ -8,6 +8,7 @@ import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class detail_user extends StatefulWidget {
@@ -91,10 +92,7 @@ class _CreditUserState extends State<detail_user> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(() => page);
   }
 
   @override

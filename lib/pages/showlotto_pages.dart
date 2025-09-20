@@ -9,6 +9,8 @@ import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class MyScreen extends StatefulWidget {
@@ -22,10 +24,16 @@ class _MyScreenState extends State<MyScreen> {
   final ApiService _api = ApiService();
   int _selectedIndex = 0;
   List<Lottery>? _lotteryList;
-
+  final box = GetStorage();
+  late int uid = 0;
+  var money = '';
   @override
   void initState() {
     super.initState();
+    uid = box.read('uid') ?? 0;
+    if (uid != 0) {
+      loadWallet();
+    }
     fetchLotteries();
   }
 
@@ -42,6 +50,17 @@ class _MyScreenState extends State<MyScreen> {
       }
     } catch (e) {
       log('Error fetching lotteries: $e');
+    }
+  }
+
+  Future<void> loadWallet() async {
+    final walletData = await _api.getWalletByid(uid);
+    if (!mounted) return;
+    if (walletData != null) {
+      setState(() {
+        money = walletData.money.toStringAsFixed(2);
+        box.write('wallet', money);
+      });
     }
   }
 
@@ -67,10 +86,7 @@ class _MyScreenState extends State<MyScreen> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(page);
   }
 
   // Future<bool> buyLotto(String number, double price) async {
@@ -117,17 +133,18 @@ class _MyScreenState extends State<MyScreen> {
               color: themeOrange,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 6),
+
+                const SizedBox(width: 6),
                 Text(
-                  "เครดิต 9999.99",
-                  style: TextStyle(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

@@ -5,6 +5,8 @@ import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class CreditPages extends StatefulWidget {
   const CreditPages({super.key});
@@ -14,7 +16,14 @@ class CreditPages extends StatefulWidget {
 }
 
 class _CreditPagesState extends State<CreditPages> {
-  int _selectedIndex = 2; // กำหนดให้ "หน้าหลัก" ถูกเลือกอยู่ตอนเริ่มต้น
+  int _selectedIndex = 2;
+  final box = GetStorage();
+  var money = "";
+  @override
+  void initState() {
+    super.initState();
+    money = (box.read('wallet') ?? 0).toString();
+  }
 
   void _onItemTapped(int index) {
     Widget page;
@@ -38,10 +47,7 @@ class _CreditPagesState extends State<CreditPages> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(page);
   }
 
   @override
@@ -76,9 +82,9 @@ class _CreditPagesState extends State<CreditPages> {
                   size: 20,
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  "เครดิต  9999.99",
-                  style: TextStyle(
+                Text(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -137,16 +143,16 @@ class _CreditPagesState extends State<CreditPages> {
                         ),
                       ),
 
-                      child: const Column(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             'เครดิตที่ใช้ได้',
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
                           Text(
-                            '9999.99',
-                            style: TextStyle(
+                            money.isNotEmpty ? money : "กำลังโหลด...",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
