@@ -27,6 +27,7 @@ class _MyScreenState extends State<MyScreen> {
   final box = GetStorage();
   late int uid = 0;
   var money = '';
+
   @override
   void initState() {
     super.initState();
@@ -114,7 +115,7 @@ class _MyScreenState extends State<MyScreen> {
     const themeOrange = Color(0xffFF8400);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color(0xFFFF8400),
       appBar: AppBar(
         backgroundColor: themeBrown,
         elevation: 0,
@@ -248,7 +249,7 @@ class _MyScreenState extends State<MyScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     // การ์ดตลาดลอตเตอรี่
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -367,6 +368,7 @@ class _MyScreenState extends State<MyScreen> {
                                       context,
                                       lottery.number,
                                       lottery.price,
+                                      lottery.status,
                                     );
                                   },
                                 )
@@ -454,9 +456,15 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  Widget _marketLotteryBox(BuildContext context, String number, double price) {
+  Widget _marketLotteryBox(
+    BuildContext context,
+    String number,
+    double price,
+    String status,
+  ) {
     return InkWell(
       onTap: () {
+        if (status == "sold") return; // ถ้า sold ห้ามซื้อ
         // Show Card ยืนยันการซื้อ
         showDialog(
           context: context,
@@ -486,91 +494,17 @@ class _MyScreenState extends State<MyScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                   onPressed: () {
-                    Navigator.pop(context); // ปิด Card ยืนยัน
+                    Navigator.pop(context);
                   },
                   child: const Text("ยกเลิก"),
                 ),
-
-                // 🔹 ปุ่มยืนยันที่แก้ใหม่
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),
                   onPressed: () async {
                     Navigator.pop(context);
-
-                    // bool success = await _api.buyLotto(number, price); //รอ api
-                    // if (success) {
-                    //   // ซื้อสำเร็จ
-                    //   showDialog(
-                    //     context: context,
-                    //     builder: (context) {
-                    //       return AlertDialog(
-                    //         shape: RoundedRectangleBorder(
-                    //           borderRadius: BorderRadius.circular(16),
-                    //         ),
-                    //         content: Column(
-                    //           mainAxisSize: MainAxisSize.min,
-                    //           children: const [
-                    //             Icon(
-                    //               Icons.check_circle,
-                    //               color: Colors.green,
-                    //               size: 60,
-                    //             ),
-                    //             SizedBox(height: 16),
-                    //             Text(
-                    //               "ระบบได้ทำการซื้อล็อตเตอรี่ให้ท่าน\nเรียบร้อยแล้ว",
-                    //               textAlign: TextAlign.center,
-                    //               style: TextStyle(
-                    //                 fontWeight: FontWeight.bold,
-                    //                 color: Colors.black87,
-                    //               ),
-                    //             ),
-                    //             SizedBox(height: 8),
-                    //             Text(
-                    //               "กรุณาตรวจสอบล็อตเตอรี่ของฉัน",
-                    //               textAlign: TextAlign.center,
-                    //               style: TextStyle(color: Colors.black54),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       );
-                    //     },
-                    //   );
-                    // } else {
-                    //   // ซื้อไม่สำเร็จ
-                    //   showDialog(
-                    //     context: context,
-                    //     builder: (context) {
-                    //       return AlertDialog(
-                    //         shape: RoundedRectangleBorder(
-                    //           borderRadius: BorderRadius.circular(16),
-                    //         ),
-                    //         content: Column(
-                    //           mainAxisSize: MainAxisSize.min,
-                    //           children: const [
-                    //             Icon(Icons.error, color: Colors.red, size: 60),
-                    //             SizedBox(height: 16),
-                    //             Text(
-                    //               "ไม่สามารถทำการซื้อได้",
-                    //               textAlign: TextAlign.center,
-                    //               style: TextStyle(
-                    //                 fontWeight: FontWeight.bold,
-                    //                 color: Colors.black87,
-                    //               ),
-                    //             ),
-                    //             SizedBox(height: 8),
-                    //             Text(
-                    //               "กรุณาลองใหม่อีกครั้ง",
-                    //               textAlign: TextAlign.center,
-                    //               style: TextStyle(color: Colors.black54),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       );
-                    //     },
-                    //   );
-                    // }
+                    // รอ api ซื้อ
                   },
                   child: const Text("ยืนยัน"),
                 ),
@@ -580,36 +514,97 @@ class _MyScreenState extends State<MyScreen> {
         );
       },
       child: Container(
-        width: 120,
-        padding: const EdgeInsets.all(8),
+        width: 140,
+        height: 90,
         decoration: BoxDecoration(
-          color: const Color(0xFFE4AD6F),
+          color: const Color(0xFF8B4513), // Brown background like the image
           borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: Text(
-                '฿${price.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            // Inner ticket card
+            Positioned(
+              left: 8,
+              top: 8,
+              right: 8,
+              bottom: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(
+                    0xFFD2B48C,
+                  ), // Light brown/beige like the ticket
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  children: [
+                    // Price section
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, right: 12),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '฿${price.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Lottery number
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          number,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            // SOLD label positioned like in the image
+            if (status == "sold")
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    "SOLD",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
