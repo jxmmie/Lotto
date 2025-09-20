@@ -10,6 +10,7 @@ import 'package:flutter_application_1/pages/user_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
 import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class Mylotto extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MylottoState extends State<Mylotto> {
   List<MyLottoRes> myLottos = [];
   Timer? _timer;
   bool _isLoading = true;
+  var money = '';
   @override
   void initState() {
     super.initState();
@@ -37,6 +39,7 @@ class _MylottoState extends State<Mylotto> {
       });
     });
     uid = box.read('uid') ?? 0;
+    money = (box.read('wallet') ?? 0).toString();
     if (uid != 0) {
       loadLotto();
     }
@@ -44,7 +47,7 @@ class _MylottoState extends State<Mylotto> {
 
   @override
   void dispose() {
-    _timer?.cancel(); // ป้องกัน setState หลัง dispose
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -85,10 +88,7 @@ class _MylottoState extends State<Mylotto> {
         page = const MyScreen();
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    Get.to(page);
   }
 
   @override
@@ -116,17 +116,17 @@ class _MylottoState extends State<Mylotto> {
               color: themeOrange,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  "เครดิต 9999.99",
-                  style: TextStyle(
+                  money.isNotEmpty ? money : "กำลังโหลด...",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -383,12 +383,12 @@ class _MylottoState extends State<Mylotto> {
       ),
       child: Center(
         child: Text(
-          number, // แสดงเลขทั้งหมดเป็น string เดียว
+          number,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 24,
-            letterSpacing: 2, // เว้นช่องระหว่างตัวเลขเหมือนรูป
+            letterSpacing: 2,
           ),
         ),
       ),
