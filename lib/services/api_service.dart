@@ -8,10 +8,11 @@ import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/UserByid_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/walletByuid_res.dart';
+import 'package:flutter_application_1/models/reqeuest/token.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://lotto-api-w5f1.onrender.com';
+  final String baseUrl = 'http://10.0.2.2:8080';
 
   // Register
   Future<bool> register(RegisterRequest request) async {
@@ -26,11 +27,12 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-
+      TakeUid.uid = data['uid']; // เก็บ uid ใน Session
+      
       // ถ้า API ส่ง uid กลับมา แสดงว่าลง DB สำเร็จ
       if (data['uid'] != null) {
         print('Register success: ${response.body}');
-        return true;
+        return true ;
       } else {
         print('Register failed (API returned invalid data): ${response.body}');
         return false;
@@ -215,6 +217,48 @@ class ApiService {
     } catch (e) {
       log("Error fetching data: $e");
       return null;
+    }
+  }
+
+   // Update Wallet (ตั้งเลขบัญชี + เซตยอดเงิน)
+  Future<bool> updateWallet({
+    required int uid,
+    String? bank,          // ไม่บังคับ
+    String? accountId,     // ไม่บังคับ
+    double? money,         // ไม่บังคับ
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
+
+      // สร้าง body ตามที่ backend รับ (ส่งเฉพาะ field ที่ต้องการแก้)
+      final Map<String, dynamic> body = {};
+      if (accountId != null && accountId.trim().isNotEmpty) {
+        body['account_id'] = (bank != null && bank.trim().isNotEmpty)
+            ? '${bank.trim()}:${accountId.trim()}'
+            : accountId.trim();
+      }
+      if (money != null) {
+        body['money'] = money;
+      }
+
+      if (body.isEmpty) {
+        log('updateWallet: nothing to update');
+        return false;
+      }
+
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      log('updateWallet status: ${res.statusCode}');
+      log('updateWallet body: ${res.body}');
+
+      return res.statusCode == 200;
+    } catch (e) {
+      log('updateWallet error: $e');
+      return false;
     }
   }
 }

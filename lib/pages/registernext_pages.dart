@@ -1,13 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/services/api_service.dart'; // <-- import ApiService ให้ถูก path
 
 class RegisternextPages extends StatefulWidget {
-  const RegisternextPages({super.key});
+  final int? uid; // รับ uid จากหน้าก่อน
+
+  const RegisternextPages({
+    super.key,
+    required this.uid,
+  });
 
   @override
   State<RegisternextPages> createState() => _RegisternextPagesState();
 }
 
 class _RegisternextPagesState extends State<RegisternextPages> {
+  final _bankCtrl = TextEditingController();
+  final _accountCtrl = TextEditingController();
+  final _amountCtrl = TextEditingController();
+  bool _loading = false;
+
+  final _api = ApiService(); // ใช้ baseUrl จากคลาส ApiService ของคุณ
+
+  @override
+  void dispose() {
+    _bankCtrl.dispose();
+    _accountCtrl.dispose();
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final bank = _bankCtrl.text.trim();
+    final account = _accountCtrl.text.trim();
+    final amountText = _amountCtrl.text.trim();
+
+    if (account.isEmpty && amountText.isEmpty) {
+      _snack('กรอกอย่างน้อย 1 อย่าง: เลขบัญชี หรือ จำนวนเงิน');
+      return;
+    }
+
+    double? money;
+    if (amountText.isNotEmpty) {
+      money = double.tryParse(amountText.replaceAll(',', ''));
+      if (money == null || money < 0) {
+        _snack('รูปแบบจำนวนเงินไม่ถูกต้อง');
+        return;
+      }
+    }
+
+    setState(() => _loading = true);
+    final ok = await _api.updateWallet(
+      uid: widget.uid ?? 0, // Provide a default value if uid is null
+      bank: bank.isEmpty ? null : bank,
+      accountId: account.isEmpty ? null : account,
+      money: money,
+    );
+    setState(() => _loading = false);
+
+    if (ok) {
+      _snack('บันทึกข้อมูลธนาคาร/ยอดเงินเรียบร้อย!');
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      _snack('บันทึกล้มเหลว กรุณาลองใหม่');
+    }
+  }
+
+  void _snack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,9 +78,8 @@ class _RegisternextPagesState extends State<RegisternextPages> {
           child: Container(
             width: 400,
             height: 820,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(0),
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 colors: [Color(0xFFFDAA26), Color(0xFFFF8400)],
                 stops: [0.51, 0.97],
                 begin: Alignment.topCenter,
@@ -28,7 +88,6 @@ class _RegisternextPagesState extends State<RegisternextPages> {
             ),
             child: Stack(
               children: [
-                /// 🐾 ลายเท้าแมว (ใส่รูป paw.png ใน assets)
                 Positioned(
                   top: 30,
                   left: 0,
@@ -45,182 +104,108 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                     child: Image.asset("assets/teen2.png", width: 230),
                   ),
                 ),
-
-                /// เนื้อหา UI
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // โลโก้แมว
-                      Column(
-                        children: [
-                          Container(
-                            height: 200,
-                            width: 200,
-                            decoration: BoxDecoration(
-                              image: const DecorationImage(
-                                image: AssetImage("assets/logo-text.png"),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-                      Column(
-                        children: [
-                          Container(
-                            height: 60,
-                            width: 270,
-                            decoration: BoxDecoration(
-                              image: const DecorationImage(
-                                image: AssetImage("assets/register-text.png"),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // ช่องกรอก Username
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: "ธนาคาร",
-                          prefixIcon: const Icon(Icons.account_balance),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
+                      Container(
+                        height: 200,
+                        width: 200,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/logo-text.png"),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      Container(
+                        height: 60,
+                        width: 270,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/register-text.png"),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                      const SizedBox(height: 10),
+                  
+              
 
-                      // ช่องกรอก Password
+                      // หมายเลขบัญชี
                       TextField(
-                        obscureText: true,
+                        controller: _accountCtrl,
                         decoration: InputDecoration(
                           hintText: "หมายเลขบัญชี",
                           prefixIcon: const Icon(Icons.credit_card),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide.none,
                           ),
                         ),
+                        keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 10),
 
+                      // จำนวนเงิน
                       TextField(
-                        obscureText: true,
+                        controller: _amountCtrl,
                         decoration: InputDecoration(
-                          hintText: "ชื่อ-นามสกุล",
-                          prefixIcon: const Icon(Icons.person),
+                          hintText: "ใส่จำนวนเงิน (ตัวเลข)",
+                          prefixIcon: const Icon(Icons.monetization_on_outlined),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide.none,
                           ),
                         ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
-                      const SizedBox(height: 10),
 
-                      TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: "ใส่จำนวนเงิน",
-                          prefixIcon: const Icon(
-                            Icons.monetization_on_outlined,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 20),
 
-                      Align(
-                        alignment: Alignment.centerLeft,
-
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          onPressed: () {},
-                          child: const Text(
-                            "หากมีบัญชีผู้ใช้แล้ว?",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ปุ่มสมัครสมาชิก
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: _loading ? null : () => Navigator.pop(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff6E6E6E),
+                            backgroundColor: const Color(0xff6E6E6E),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          child: const Text(
-                            "ถอยกลับ",
-                            style: TextStyle(fontSize: 18),
-                          ),
+                          child: const Text("ถอยกลับ", style: TextStyle(fontSize: 18)),
                         ),
                       ),
                       const SizedBox(height: 10),
 
-                      // ปุ่มสมัครสมาชิก
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: _loading ? null : _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff521f00),
+                            backgroundColor: const Color(0xff521f00),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          child: const Text(
-                            "สมัครสมาชิก",
-                            style: TextStyle(fontSize: 18),
-                          ),
+                          child: _loading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Text("สมัครสมาชิก", style: TextStyle(fontSize: 18)),
                         ),
                       ),
                     ],

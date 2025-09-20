@@ -36,3 +36,27 @@ class WalletByuidRes {
     "account_id": accountId,
   };
 }
+
+class WalletUpdateResponse {
+  final String message;
+  final int wid;
+  final int uid;
+  final double money;
+  final String? accountId;
+  WalletUpdateResponse({
+    required this.message,
+    required this.wid,
+    required this.uid,
+    required this.money,
+    this.accountId,
+  });
+
+  factory WalletUpdateResponse.fromJson(Map<String, dynamic> j) =>
+      WalletUpdateResponse(
+        message: j['message'] as String,
+        wid: j['wid'] as int,
+        uid: j['uid'] as int,
+        money: (j['money'] as num).toDouble(),
+        accountId: j['account_id'] as String?,
+      );
+}

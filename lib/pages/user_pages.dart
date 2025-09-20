@@ -4,7 +4,6 @@ import 'package:flutter_application_1/pages/detail_user_pages.dart';
 import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/wallet_data_pages.dart';
-import 'package:flutter_application_1/pages/wallet_null_pages.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 

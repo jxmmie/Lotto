@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/register_request.dart';
-import 'package:flutter_application_1/pages/showlotto_pages.dart';
+import 'package:flutter_application_1/models/reqeuest/token.dart';
+import 'package:flutter_application_1/pages/registernext_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
-
-import '../ci/api_client.dart';
+import 'package:flutter_application_1/models/reqeuest/token.dart';
 
 class RegisterPages extends StatefulWidget {
   const RegisterPages({super.key});
@@ -95,15 +95,18 @@ class _RegisterPagesState extends State<RegisterPages> {
 
       // เรียก API
       final success = await _api.register(registerReq);
-
+      int? currentUid = TakeUid.uid;
       if (!mounted) return;
 
       if (success) {
         _toast('สมัครสมาชิกสำเร็จ ✅');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MyScreen()), // ไปหน้าหลัก
-        );
+       Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => RegisternextPages(uid:currentUid),
+  ),
+);
+
       } else {
         _toast('สมัครไม่สำเร็จ ❌');
       }
