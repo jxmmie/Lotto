@@ -9,6 +9,7 @@ import 'package:flutter_application_1/models/reqeuest/respon/UserByid_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/walletByuid_res.dart';
 import 'package:flutter_application_1/models/reqeuest/token.dart';
+import 'package:flutter_application_1/models/reqeuest/wallert_req.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -221,44 +222,28 @@ class ApiService {
   }
 
    // Update Wallet (ตั้งเลขบัญชี + เซตยอดเงิน)
-  Future<bool> updateWallet({
-    required int uid,
-    String? bank,          // ไม่บังคับ
-    String? accountId,     // ไม่บังคับ
-    double? money,         // ไม่บังคับ
-  }) async {
-    try {
-      final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
+ Future<UpdateWalletResponse?> updateWallet(int uid, UpdateWalletRequest req) async {
+  try {
+    final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
 
-      // สร้าง body ตามที่ backend รับ (ส่งเฉพาะ field ที่ต้องการแก้)
-      final Map<String, dynamic> body = {};
-      if (accountId != null && accountId.trim().isNotEmpty) {
-        body['account_id'] = (bank != null && bank.trim().isNotEmpty)
-            ? '${bank.trim()}:${accountId.trim()}'
-            : accountId.trim();
-      }
-      if (money != null) {
-        body['money'] = money;
-      }
+    final res = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(req.toJson()),
+    );
 
-      if (body.isEmpty) {
-        log('updateWallet: nothing to update');
-        return false;
-      }
+    log('updateWallet status: ${res.statusCode}');
+    log('updateWallet body: ${res.body}');
 
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
-
-      log('updateWallet status: ${res.statusCode}');
-      log('updateWallet body: ${res.body}');
-
-      return res.statusCode == 200;
-    } catch (e) {
-      log('updateWallet error: $e');
-      return false;
+    if (res.statusCode == 200) {
+      return UpdateWalletResponse.fromJson(jsonDecode(res.body));
+    } else {
+      return UpdateWalletResponse(success: false, message: res.body);
     }
+  } catch (e) {
+    log('updateWallet error: $e');
+    return UpdateWalletResponse(success: false, message: e.toString());
   }
+}
+
 }
