@@ -73,6 +73,25 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
+  // Future<bool> buyLotto(String number, double price) async {
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse("$baseUrl/lotto/buy"),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: jsonEncode({"number": number, "price": price}),
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       return true;
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     print("Error buyLotto: $e");
+  //     return false;
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
     const themeBrown = Color(0xFF521F00);
@@ -328,6 +347,7 @@ class _MyScreenState extends State<MyScreen> {
                                   itemBuilder: (context, index) {
                                     final lottery = _lotteryList![index];
                                     return _marketLotteryBox(
+                                      context,
                                       lottery.number,
                                       lottery.price,
                                     );
@@ -417,43 +437,164 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  Widget _marketLotteryBox(String number, double price) {
-    // UI for 'Lottery Market' section (shows actual number and price)
-    return Container(
-      width: 10,
-      padding: const EdgeInsets.all(0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE4AD6F),
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _marketLotteryBox(BuildContext context, String number, double price) {
+    return InkWell(
+      onTap: () {
+        // Show Card ยืนยันการซื้อ
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Center(
+                child: Text(
+                  "คุณต้องการซื้อ ล็อตเตอรี่\nใบนี้ ใช่หรือไม่ ?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              content: const Text(
+                "ระบบจะหักเครดิตคุณอัตโนมัติ",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54),
+              ),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () {
+                    Navigator.pop(context); // ปิด Card ยืนยัน
+                  },
+                  child: const Text("ยกเลิก"),
+                ),
 
-            children: [
-              Text(
+                // 🔹 ปุ่มยืนยันที่แก้ใหม่
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    // bool success = await _api.buyLotto(number, price); //รอ api
+                    // if (success) {
+                    //   // ซื้อสำเร็จ
+                    //   showDialog(
+                    //     context: context,
+                    //     builder: (context) {
+                    //       return AlertDialog(
+                    //         shape: RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(16),
+                    //         ),
+                    //         content: Column(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: const [
+                    //             Icon(
+                    //               Icons.check_circle,
+                    //               color: Colors.green,
+                    //               size: 60,
+                    //             ),
+                    //             SizedBox(height: 16),
+                    //             Text(
+                    //               "ระบบได้ทำการซื้อล็อตเตอรี่ให้ท่าน\nเรียบร้อยแล้ว",
+                    //               textAlign: TextAlign.center,
+                    //               style: TextStyle(
+                    //                 fontWeight: FontWeight.bold,
+                    //                 color: Colors.black87,
+                    //               ),
+                    //             ),
+                    //             SizedBox(height: 8),
+                    //             Text(
+                    //               "กรุณาตรวจสอบล็อตเตอรี่ของฉัน",
+                    //               textAlign: TextAlign.center,
+                    //               style: TextStyle(color: Colors.black54),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     },
+                    //   );
+                    // } else {
+                    //   // ซื้อไม่สำเร็จ
+                    //   showDialog(
+                    //     context: context,
+                    //     builder: (context) {
+                    //       return AlertDialog(
+                    //         shape: RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(16),
+                    //         ),
+                    //         content: Column(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: const [
+                    //             Icon(Icons.error, color: Colors.red, size: 60),
+                    //             SizedBox(height: 16),
+                    //             Text(
+                    //               "ไม่สามารถทำการซื้อได้",
+                    //               textAlign: TextAlign.center,
+                    //               style: TextStyle(
+                    //                 fontWeight: FontWeight.bold,
+                    //                 color: Colors.black87,
+                    //               ),
+                    //             ),
+                    //             SizedBox(height: 8),
+                    //             Text(
+                    //               "กรุณาลองใหม่อีกครั้ง",
+                    //               textAlign: TextAlign.center,
+                    //               style: TextStyle(color: Colors.black54),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     },
+                    //   );
+                    // }
+                  },
+                  child: const Text("ยืนยัน"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Container(
+        width: 120,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE4AD6F),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: Text(
                 '฿${price.toStringAsFixed(0)}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text(
-              number,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            ),
+            const SizedBox(height: 4),
+            Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
