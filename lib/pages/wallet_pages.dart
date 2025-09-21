@@ -1,11 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get_storage/get_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
+  await GetStorage.init(); // ถ้ายังไม่ได้ init ให้เปิดใช้งาน
   runApp(const MyApp());
 }
 
@@ -29,22 +29,18 @@ class WalletPages extends StatefulWidget {
 }
 
 class _WalletPagesState extends State<WalletPages> {
-  int _selectedIndex = 3;
+  int _selectedIndex = 3; // กำหนดหน้าเริ่มต้น (รางวัล)
   final ApiService _api = ApiService();
   Map<String, dynamic>? result;
   bool isLoading = false;
   final box = GetStorage();
   late int uid = 0;
-  var money = '';
-  List<Rewardrank>? _rewardList;
-  List<Map<String, dynamic>> userWinningNumbers = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     uid = box.read('uid') ?? 0;
-    _checkReward();
+    _checkReward(); // เรียกโหลดข้อมูลตอนเริ่ม
   }
 
   void _onItemTapped(int index) {
@@ -56,33 +52,32 @@ class _WalletPagesState extends State<WalletPages> {
   Future<void> _checkReward() async {
     setState(() => isLoading = true);
     try {
-      final data = await _api.checkReward(uid);
-      debugPrint('API response: $data');
+      final data = await _api.getUserReward(uid);
+      debugPrint('checkReward response: $data');
 
+      // หาก API คืนค่าเป็น Map อยู่แล้ว
       if (data is Map<String, dynamic>) {
-        // ตรวจสอบว่ามี 'winners' เป็น List หรือไม่
-        final winnersDynamic = data['winners'];
-        final List<dynamic> winners = winnersDynamic is List
-            ? winnersDynamic
-            : <dynamic>[];
-        if (winners.isNotEmpty) {
-          debugPrint('จำนวนรางวัล: ${winners.length}');
-          for (var i = 0; i < winners.length; i++) {
-            final w = winners[i];
-            debugPrint(
-              'รางวัล $i: rank=${w["rank"]}, prizeEach=${w["prizeEach"]}, lid=${w["lid"]}',
-            );
+        setState(() => result = data as Map<String, dynamic>?);
+      } else if (data is String) {
+        // กรณี API ส่งเป็น JSON string
+        try {
+          final parsed = jsonDecode(data as String);
+          if (parsed is Map<String, dynamic>) {
+            setState(() => result = parsed);
+          } else {
+            setState(() => result = {'winners': []});
           }
-        } else {
-          debugPrint('ไม่มีรางวัล');
+        } catch (e) {
+          debugPrint('Failed to parse response: $e');
+          setState(() => result = {'winners': []});
         }
-        setState(() => result = {'winners': winners});
       } else {
+        // กรณีอื่น ๆ
         setState(() => result = {'winners': []});
       }
     } catch (e) {
-      debugPrint('Error: $e');
-      setState(() => result = {'winners': []});
+      debugPrint("Error: $e");
+      setState(() => result = {"message": "เกิดข้อผิดพลาด", 'winners': []});
     } finally {
       setState(() => isLoading = false);
     }
@@ -95,14 +90,12 @@ class _WalletPagesState extends State<WalletPages> {
 
     const themeBrown = Color(0xFF521F00);
     const themeOrange = Color(0xffFF8400);
-    const themeOrange2 = Color(0xFFFF8000);
-    const themeRed = Color(0xFFCF0000);
+    const darkBrownColor = Color(0xFF521F00);
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: themeBrown,
-        elevation: 0,
         titleSpacing: 0,
         title: Row(
           children: [
@@ -118,17 +111,17 @@ class _WalletPagesState extends State<WalletPages> {
               color: themeOrange,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.account_balance_wallet_outlined,
                   color: Colors.white,
                   size: 20,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Text(
-                  money.isNotEmpty ? money : "กำลังโหลด...",
-                  style: const TextStyle(
+                  "เครดิต 9999.99",
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -140,20 +133,14 @@ class _WalletPagesState extends State<WalletPages> {
       ),
       body: Container(
         width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFFDAA26), Color(0xFFFF8400)],
-            stops: [0.51, 0.97],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-<<<<<<< HEAD
-        child: Center(
-          child: isLoading
-              ? const CircularProgressIndicator()
-              : _buildBodyContent(screenWidth, screenHeight, darkBrownColor),
-=======
         child: Stack(
           children: [
             Positioned(
@@ -179,19 +166,15 @@ class _WalletPagesState extends State<WalletPages> {
               ),
             ),
             Center(
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : userWinningNumbers.isNotEmpty
-                  ? _buildWinningContent(screenWidth, screenHeight)
-                  : _buildNoWinningContent(
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : _buildBodyContent(
                       screenWidth,
                       screenHeight,
-                      themeRed,
-                      themeOrange2,
+                      darkBrownColor,
                     ),
             ),
           ],
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -201,16 +184,13 @@ class _WalletPagesState extends State<WalletPages> {
         unselectedItemColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-          _onItemTapped(index);
-        },
+        onTap: _onItemTapped,
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
           fontWeight: FontWeight.bold,
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 0),
-        items: const [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             label: 'หน้าหลัก',
@@ -238,17 +218,16 @@ class _WalletPagesState extends State<WalletPages> {
     double screenHeight,
     Color darkBrownColor,
   ) {
-    if (result == null || !result!.containsKey('winners')) {
+    if (result == null) {
       return _buildNoDataCard(screenWidth, screenHeight);
     }
 
-    final dynamic winners = result!['winners'];
+    final winnersDynamic = result?['winners'];
+    final List<dynamic> winners = winnersDynamic is List
+        ? winnersDynamic
+        : <dynamic>[];
 
-    if (winners is! List) {
-      return _buildNoDataCard(screenWidth, screenHeight);
-    }
-    final List<dynamic> winner = winners;
-    if (winner.isNotEmpty) {
+    if (winners.isNotEmpty) {
       return _buildDataCard(screenWidth, screenHeight, darkBrownColor, winners);
     } else {
       return _buildNoDataCard(screenWidth, screenHeight);
@@ -263,12 +242,12 @@ class _WalletPagesState extends State<WalletPages> {
     Color darkBrownColor,
     List<dynamic> winners,
   ) {
-    const darkBrownColor = Color(0xFF521F00);
-
     return Container(
       width: screenWidth * 0.88,
-      height: screenHeight * 0.6,
-      padding: EdgeInsets.all(screenWidth * 0.05),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.05,
+        vertical: screenHeight * 0.03,
+      ),
       decoration: BoxDecoration(
         color: darkBrownColor,
         borderRadius: BorderRadius.circular(screenWidth * 0.04),
@@ -307,18 +286,17 @@ class _WalletPagesState extends State<WalletPages> {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             Icons.sentiment_dissatisfied_outlined,
-            color: themeRed,
+            color: Colors.red,
             size: screenWidth * 0.3,
           ),
           SizedBox(height: screenHeight * 0.02),
           const Text(
             "เสียใจด้วยค่ะ",
             style: TextStyle(
-              color: Color(0xFFCF0000),
+              color: Colors.red,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -338,13 +316,11 @@ class _WalletPagesState extends State<WalletPages> {
   }
 
   Widget _buildWinningEntry(
-    BuildContext context,
+    double screenWidth,
     String prizeText,
     String amountText,
     String number,
   ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.015,
@@ -356,9 +332,7 @@ class _WalletPagesState extends State<WalletPages> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // กล่องทอง (ข้อความรางวัล + จำนวนเงิน)
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -372,13 +346,6 @@ class _WalletPagesState extends State<WalletPages> {
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(2, 3),
-                        blurRadius: 5,
-                      ),
-                    ],
                   ),
                   child: Column(
                     children: [
@@ -403,10 +370,7 @@ class _WalletPagesState extends State<WalletPages> {
                   ),
                 ),
               ),
-
               const SizedBox(width: 10),
-
-              // กล่องตัวเลข
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: screenWidth * 0.07,
@@ -432,21 +396,10 @@ class _WalletPagesState extends State<WalletPages> {
             ],
           ),
           SizedBox(height: screenWidth * 0.02),
-
-          // ปุ่ม "ขึ้นเงินรางวัล"
           ElevatedButton(
-            onPressed: () {
-              // TODO: เพิ่ม API สำหรับขึ้นเงินรางวัล
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("ขึ้นเงินรางวัลสำเร็จ!"),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3C0001),
-              elevation: 0,
               padding: EdgeInsets.symmetric(vertical: screenWidth * 0.025),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(screenWidth * 0.04),

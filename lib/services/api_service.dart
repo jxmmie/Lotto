@@ -308,4 +308,21 @@ class ApiService {
       return null;
     }
   }
+
+  Future<GetUserRewardsRes?> getUserReward(int uid) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Lottery/my/$uid');
+      final res = await http.get(url);
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> jsonMap = json.decode(res.body);
+        return GetUserRewardsRes.fromJson(jsonMap);
+      } else {
+        log("Failed to load data with status code: ${res.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      log("Error fetching data: $e");
+      return null;
+    }
+  }
 }
