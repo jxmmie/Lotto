@@ -289,40 +289,22 @@ class ApiService {
     }
   }
 
-  Future<WinnerRes?> checkWinner(int uid, WinnerRes req) async {
-    try {
-      final url = Uri.parse('$baseUrl/api/Lottery/check/$uid');
+  Future<List<CheckRewardItem>> getUserReward(int uid) async {
+    final url = Uri.parse('$baseUrl/api/Lottery/check/$uid');
+    final res = await http.post(url);
 
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(req.toJson()),
-      );
-      log('checkWinner status: ${res.statusCode}');
-      log('checkWinner body: ${res.body}');
-      if (res.statusCode == 200) {
-        return WinnerRes.fromJson(jsonDecode(res.body));
+    if (res.statusCode == 200) {
+      final decoded = jsonDecode(res.body);
+      if (decoded is List) {
+        return decoded.map((e) => CheckRewardItem.fromJson(e)).toList();
       }
-    } catch (e) {
-      log('checkWinner error: $e');
-      return null;
     }
+    return [];
   }
 
-  Future<GetUserRewardsRes?> getUserReward(int uid) async {
-    try {
-      final url = Uri.parse('$baseUrl/api/Lottery/my/$uid');
-      final res = await http.get(url);
-      if (res.statusCode == 200) {
-        final Map<String, dynamic> jsonMap = json.decode(res.body);
-        return GetUserRewardsRes.fromJson(jsonMap);
-      } else {
-        log("Failed to load data with status code: ${res.statusCode}");
-        return null;
-      }
-    } catch (e) {
-      log("Error fetching data: $e");
-      return null;
-    }
+  Future<bool> claimOrder(int oid) async {
+    final url = Uri.parse('$baseUrl/api/Lottery/claim/$oid');
+    final res = await http.post(url);
+    return res.statusCode == 200;
   }
 }

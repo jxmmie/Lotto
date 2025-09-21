@@ -1,11 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/services/api_service.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Winner_res.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_application_1/services/api_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init(); // ถ้ายังไม่ได้ init ให้เปิดใช้งาน
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -29,59 +30,50 @@ class WalletPages extends StatefulWidget {
 }
 
 class _WalletPagesState extends State<WalletPages> {
-  int _selectedIndex = 3; // กำหนดหน้าเริ่มต้น (รางวัล)
+  int _selectedIndex = 3; // หน้า "รางวัล"
   final ApiService _api = ApiService();
-  Map<String, dynamic>? result;
-  bool isLoading = false;
   final box = GetStorage();
+
+  bool isLoading = false;
   late int uid = 0;
+
+  // ✅ ใช้โมเดลที่ type-safe
+  List<CheckRewardItem> winners = [];
 
   @override
   void initState() {
     super.initState();
     uid = box.read('uid') ?? 0;
-    _checkReward(); // เรียกโหลดข้อมูลตอนเริ่ม
+    _checkReward();
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   Future<void> _checkReward() async {
     setState(() => isLoading = true);
     try {
-      final data = await _api.getUserReward(uid);
-      debugPrint('checkReward response: $data');
-
-      // หาก API คืนค่าเป็น Map อยู่แล้ว
-      if (data is Map<String, dynamic>) {
-        setState(() => result = data as Map<String, dynamic>?);
-      } else if (data is String) {
-        // กรณี API ส่งเป็น JSON string
-        try {
-          final parsed = jsonDecode(data as String);
-          if (parsed is Map<String, dynamic>) {
-            setState(() => result = parsed);
-          } else {
-            setState(() => result = {'winners': []});
-          }
-        } catch (e) {
-          debugPrint('Failed to parse response: $e');
-          setState(() => result = {'winners': []});
-        }
-      } else {
-        // กรณีอื่น ๆ
-        setState(() => result = {'winners': []});
-      }
+      final data = await _api.getUserReward(uid); // -> List<CheckRewardItem>
+      setState(() => winners = data);
     } catch (e) {
-      debugPrint("Error: $e");
-      setState(() => result = {"message": "เกิดข้อผิดพลาด", 'winners': []});
+      debugPrint("checkReward error: $e");
+      setState(() => winners = []);
     } finally {
       setState(() => isLoading = false);
     }
   }
+
+  Future<void> _claim(int oid) async {
+    final ok = await _api.claimOrder(oid);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'ขึ้นเงินสำเร็จ' : 'ขึ้นเงินไม่สำเร็จ')),
+    );
+    if (ok) _checkReward();
+  }
+
+  String _fmtNum(num n) => n.toStringAsFixed(0); // อยากคั่นหลักเพิ่ม ใช้ NumberFormat ก็ได้
 
   @override
   Widget build(BuildContext context) {
@@ -113,18 +105,11 @@ class _WalletPagesState extends State<WalletPages> {
             ),
             child: const Row(
               children: [
-                Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 20),
                 SizedBox(width: 6),
                 Text(
                   "เครดิต 9999.99",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -148,10 +133,7 @@ class _WalletPagesState extends State<WalletPages> {
               left: 0,
               child: Opacity(
                 opacity: 0.9,
-                child: Image.asset(
-                  "assets/teen1.png",
-                  width: screenWidth * 0.35,
-                ),
+                child: Image.asset("assets/teen1.png", width: screenWidth * 0.35),
               ),
             ),
             Positioned(
@@ -159,20 +141,13 @@ class _WalletPagesState extends State<WalletPages> {
               right: 0,
               child: Opacity(
                 opacity: 0.9,
-                child: Image.asset(
-                  "assets/teen2.png",
-                  width: screenWidth * 0.6,
-                ),
+                child: Image.asset("assets/teen2.png", width: screenWidth * 0.6),
               ),
             ),
             Center(
               child: isLoading
                   ? const CircularProgressIndicator()
-                  : _buildBodyContent(
-                      screenWidth,
-                      screenHeight,
-                      darkBrownColor,
-                    ),
+                  : _buildBodyContent(screenWidth, screenHeight, darkBrownColor),
             ),
           ],
         ),
@@ -191,42 +166,22 @@ class _WalletPagesState extends State<WalletPages> {
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 0),
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'หน้าหลัก',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.storage_sharp),
-            label: 'ลอตเตอรี่',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'กระเป๋าเงิน',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events_outlined),
-            label: 'รางวัล',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'หน้าหลัก'),
+          BottomNavigationBarItem(icon: Icon(Icons.storage_sharp), label: 'ลอตเตอรี่'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'กระเป๋าเงิน'),
+          BottomNavigationBarItem(icon: Icon(Icons.emoji_events_outlined), label: 'รางวัล'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _checkReward,
+        icon: const Icon(Icons.refresh),
+        label: const Text('เช็คผลอีกครั้ง'),
       ),
     );
   }
 
-  Widget _buildBodyContent(
-    double screenWidth,
-    double screenHeight,
-    Color darkBrownColor,
-  ) {
-    if (result == null) {
-      return _buildNoDataCard(screenWidth, screenHeight);
-    }
-
-    final winnersDynamic = result?['winners'];
-    final List<dynamic> winners = winnersDynamic is List
-        ? winnersDynamic
-        : <dynamic>[];
-
+  Widget _buildBodyContent(double screenWidth, double screenHeight, Color darkBrownColor) {
     if (winners.isNotEmpty) {
       return _buildDataCard(screenWidth, screenHeight, darkBrownColor, winners);
     } else {
@@ -234,13 +189,11 @@ class _WalletPagesState extends State<WalletPages> {
     }
   }
 
-  // ... (ส่วน widget _buildDataCard, _buildNoDataCard, _buildWinningEntry เหมือนเดิม)
-  // ผมเอาส่วนเหล่านี้ไว้เหมือนเดิมกับโค้ดของคุณ (ไม่ต้องแก้ถ้าอยากให้ UI เดิม)
   Widget _buildDataCard(
     double screenWidth,
     double screenHeight,
     Color darkBrownColor,
-    List<dynamic> winners,
+    List<CheckRewardItem> winners,
   ) {
     return Container(
       width: screenWidth * 0.88,
@@ -258,17 +211,16 @@ class _WalletPagesState extends State<WalletPages> {
         children: [
           Image.asset("assets/Congratulations.png", width: screenWidth * 0.5),
           SizedBox(height: screenHeight * 0.03),
-          ...winners.map(
-            (w) => Padding(
-              padding: EdgeInsets.only(bottom: screenHeight * 0.02),
-              child: _buildWinningEntry(
-                screenWidth,
-                "รางวัลที่ ${w["rank"]}",
-                "${w["prizeEach"]} บาท",
-                w["lid"].toString(),
-              ),
-            ),
-          ),
+          ...winners.map((w) => Padding(
+                padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                child: _buildWinningEntry(
+                  screenWidth,
+                  "รางวัลที่ ${w.rank}",
+                  "ใบละ ${_fmtNum(w.prizeEach)} • รวม ${_fmtNum(w.prizeTotal)}",
+                  w.lid.toString(), // ถ้าอยากโชว์เลขลอตเตอรี่จริง ให้ backend ส่ง number มาด้วย
+                  onClaim: () => _claim(w.oid),
+                ),
+              )),
         ],
       ),
     );
@@ -287,28 +239,13 @@ class _WalletPagesState extends State<WalletPages> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.sentiment_dissatisfied_outlined,
-            color: Colors.red,
-            size: screenWidth * 0.3,
-          ),
+          Icon(Icons.sentiment_dissatisfied_outlined, color: Colors.red, size: screenWidth * 0.3),
           SizedBox(height: screenHeight * 0.02),
-          const Text(
-            "เสียใจด้วยค่ะ",
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          const Text("เสียใจด้วยค่ะ", style: TextStyle(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold)),
           SizedBox(height: screenHeight * 0.01),
           const Text(
             "คุณไม่มีรางวัลที่ถูกเลย",
-            style: TextStyle(
-              color: Color(0xFFFF8000),
-              fontSize: 21,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Color(0xFFFF8000), fontSize: 21, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -319,14 +256,12 @@ class _WalletPagesState extends State<WalletPages> {
     double screenWidth,
     String prizeText,
     String amountText,
-    String number,
-  ) {
+    String number, {
+    required VoidCallback onClaim,
+  }) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.015,
-        vertical: screenWidth * 0.02,
-      ),
-      decoration: BoxDecoration(color: const Color(0xFFB47200)),
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.015, vertical: screenWidth * 0.02),
+      decoration: const BoxDecoration(color: Color(0xFFB47200)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -335,10 +270,7 @@ class _WalletPagesState extends State<WalletPages> {
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFFFDD835), Color(0xFFFFC107)],
@@ -349,66 +281,41 @@ class _WalletPagesState extends State<WalletPages> {
                   ),
                   child: Column(
                     children: [
-                      Text(
-                        prizeText,
-                        style: const TextStyle(
-                          color: Color(0xFF521F00),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text(prizeText,
+                          style: const TextStyle(
+                              color: Color(0xFF521F00), fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(
-                        amountText,
-                        style: const TextStyle(
-                          color: Color(0xFF521F00),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      Text(amountText,
+                          style: const TextStyle(
+                              color: Color(0xFF521F00), fontSize: 14, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.07,
-                  vertical: screenWidth * 0.05,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.07, vertical: screenWidth * 0.05),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                  border: Border.all(
-                    color: const Color(0xFFFDAA26),
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: const Color(0xFFFDAA26), width: 1.5),
                 ),
                 child: Text(
-                  number,
-                  style: const TextStyle(
-                    color: Color(0xFF521F00),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  number, // ตอนนี้โชว์ LID
+                  style: const TextStyle(color: Color(0xFF521F00), fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
           SizedBox(height: screenWidth * 0.02),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: onClaim,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3C0001),
               padding: EdgeInsets.symmetric(vertical: screenWidth * 0.025),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(screenWidth * 0.04),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.04)),
             ),
-            child: const Text(
-              "ขึ้นเงินรางวัล",
-              style: TextStyle(color: Colors.white, fontSize: 14),
-            ),
+            child: const Text("ขึ้นเงินรางวัล", style: TextStyle(color: Colors.white, fontSize: 14)),
           ),
         ],
       ),

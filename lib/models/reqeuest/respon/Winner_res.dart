@@ -1,47 +1,12 @@
-// To parse this JSON data, do
-//
-//     final winnerRes = winnerResFromJson(jsonString);
+class CheckRewardItem {
+  final int oid;
+  final int lid;
+  final String rank;     // บางทีเป็น "N/A" ได้ ถ้าไม่มี
+  final int prizeEach;   // ถ้า backend ส่งเป็น number ไม่มีจุด ใช้ int
+  final int amount;
+  final int prizeTotal;
 
-import 'package:meta/meta.dart';
-import 'dart:convert';
-
-WinnerRes winnerResFromJson(String str) => WinnerRes.fromJson(json.decode(str));
-
-String winnerResToJson(WinnerRes data) => json.encode(data.toJson());
-
-class WinnerRes {
-  String message;
-  List<Winner> winners;
-  List<dynamic> losers;
-
-  WinnerRes({
-    required this.message,
-    required this.winners,
-    required this.losers,
-  });
-
-  factory WinnerRes.fromJson(Map<String, dynamic> json) => WinnerRes(
-    message: json["message"],
-    winners: List<Winner>.from(json["winners"].map((x) => Winner.fromJson(x))),
-    losers: List<dynamic>.from(json["losers"].map((x) => x)),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "message": message,
-    "winners": List<dynamic>.from(winners.map((x) => x.toJson())),
-    "losers": List<dynamic>.from(losers.map((x) => x)),
-  };
-}
-
-class Winner {
-  int oid;
-  int lid;
-  String rank;
-  int prizeEach;
-  int amount;
-  int prizeTotal;
-
-  Winner({
+  CheckRewardItem({
     required this.oid,
     required this.lid,
     required this.rank,
@@ -50,21 +15,17 @@ class Winner {
     required this.prizeTotal,
   });
 
-  factory Winner.fromJson(Map<String, dynamic> json) => Winner(
-    oid: json["oid"],
-    lid: json["lid"],
-    rank: json["rank"],
-    prizeEach: json["prizeEach"],
-    amount: json["amount"],
-    prizeTotal: json["prizeTotal"],
-  );
+  factory CheckRewardItem.fromJson(Map<String, dynamic> json) {
+    // ป้องกัน type double/int จาก backend
+    int _toInt(dynamic v) => (v is int) ? v : (v is double) ? v.toInt() : int.parse(v.toString());
 
-  Map<String, dynamic> toJson() => {
-    "oid": oid,
-    "lid": lid,
-    "rank": rank,
-    "prizeEach": prizeEach,
-    "amount": amount,
-    "prizeTotal": prizeTotal,
-  };
+    return CheckRewardItem(
+      oid: _toInt(json['oid']),
+      lid: _toInt(json['lid']),
+      rank: (json['rank'] ?? '').toString(),
+      prizeEach: _toInt(json['prizeEach']),
+      amount: _toInt(json['amount']),
+      prizeTotal: _toInt(json['prizeTotal']),
+    );
+  }
 }
