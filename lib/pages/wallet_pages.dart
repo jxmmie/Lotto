@@ -315,7 +315,7 @@ class _WalletPagesState extends State<WalletPages> {
               padding: EdgeInsets.symmetric(vertical: screenWidth * 0.025),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.04)),
             ),
-            child: const Text("ขึ้นเงินรางวัล", style: TextStyle(color: Colors.white, fontSize: 14)),
+            child: const Text("ขึ้นเงินรางวัล ", style: TextStyle(color: Colors.white, fontSize: 14)),
           ),
         ],
       ),
