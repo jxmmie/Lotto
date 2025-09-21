@@ -15,7 +15,7 @@ import 'package:flutter_application_1/models/reqeuest/wallert_req.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://a249db727355.ngrok-free.app';
+  final String baseUrl = 'https://a566dedbf9fd.ngrok-free.app';
 
   // Register
   Future<bool> register(RegisterRequest request) async {

@@ -5,6 +5,7 @@ import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 
 import 'package:flutter_application_1/pages/wallet_pages.dart';
+import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -18,11 +19,17 @@ class UserPages extends StatefulWidget {
 class _UserPagesState extends State<UserPages> {
   int _selectedIndex = 4;
   final box = GetStorage();
+  final ApiService _api = ApiService();
   var money = '';
+  late int uid = 0;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    uid = box.read('uid') ?? 0;
+    if (uid != 0) {
+      loadWallet();
+    }
     money = (box.read('waller').toString());
   }
 
@@ -49,6 +56,17 @@ class _UserPagesState extends State<UserPages> {
     }
 
     Get.to(() => page);
+  }
+
+  Future<void> loadWallet() async {
+    final walletData = await _api.getWalletByid(uid);
+    if (!mounted) return;
+    if (walletData != null) {
+      setState(() {
+        money = walletData.money.toStringAsFixed(2);
+        box.write('wallet', money);
+      });
+    }
   }
 
   @override
