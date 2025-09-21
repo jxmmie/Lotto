@@ -307,4 +307,23 @@ class ApiService {
     final res = await http.post(url);
     return res.statusCode == 200;
   }
+
+  Future<bool> clearAllData() async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/Admin/clear-all'),
+    );
+
+    log('Status code for clear all data: ${response.statusCode}');
+    log('Response body for clear all data: ${response.body}');
+
+    if (response.statusCode == 200) {
+      log('All data has been successfully cleared!');
+      return true;
+    } else {
+      log(
+        'Failed to clear data. Status: ${response.statusCode}, Body: ${response.body}',
+      );
+      return false;
+    }
+  }
 }
