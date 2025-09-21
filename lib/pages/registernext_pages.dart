@@ -50,20 +50,13 @@ class _RegisternextPagesState extends State<RegisternextPages> {
       accountId: account.isEmpty ? null : account,
       money: money,
     );
-    final result = await _api.updateWallet(
-      widget.uid!,
-       req,
-    );
+    
     setState(() => _loading = false);
 
     if (!mounted) return;
 
-    if (result == true) {
       _snack('บันทึกข้อมูลธนาคาร/ยอดเงินเรียบร้อย!');
       Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      _snack('บันทึกล้มเหลว กรุณาลองใหม่');
-    }
   }
 
   void _snack(String msg) {
