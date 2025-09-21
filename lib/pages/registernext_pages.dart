@@ -50,7 +50,10 @@ class _RegisternextPagesState extends State<RegisternextPages> {
       accountId: account.isEmpty ? null : account,
       money: money,
     );
-    
+     final result = await _api.updateWallet(
+      widget.uid!,
+       req,
+    );
     setState(() => _loading = false);
 
     if (!mounted) return;
@@ -153,7 +156,7 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                 ],
                                 validator: (v) {
                                   final t = (v ?? '').trim();
-                                  if (t.isEmpty) return 'กรอกหมายเลขบัญชี ';
+                                  if (t.isEmpty) return 'กรอกหมายเลขบัญชี';
                                   if (t.length < 8) return 'เลขบัญชีสั้นเกินไป';
                                   return null;
                                 },
