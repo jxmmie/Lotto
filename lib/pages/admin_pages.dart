@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
-import 'package:flutter_application_1/pages/login_pages.dart';
 import 'dart:math';
 import 'dart:developer';
 
 import 'package:flutter_application_1/services/api_service.dart';
-import 'package:get/get.dart';
 
 class AdminPages extends StatefulWidget {
   const AdminPages({super.key});
@@ -21,7 +19,7 @@ class _AdminPagesState extends State<AdminPages> {
   final ApiService _apiService = ApiService();
   List<Rewardrank>? _rewardList;
   bool _isSaving = false;
-  bool success = false;
+
   @override
   void initState() {
     super.initState();
@@ -100,23 +98,10 @@ class _AdminPagesState extends State<AdminPages> {
 
   /// ------------------ ฟังก์ชันสุ่มรางวัล ------------------
   Future<void> _randomRewards() async {
-    if (success == true) {
-      // ถ้าเคยสุ่มแล้วไม่ต้องสุ่มอีก แค่แจ้งเตือน
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("คุณได้สุ่มรางวัลไปแล้ว!")));
-      return;
-    }
-
     setState(() => _isSaving = true);
-
-    success = await _apiService.randomRewards();
-
+    bool success = await _apiService.randomRewards();
     setState(() => _isSaving = false);
-
-    if (success) {
-      await _loadRewards(); // โหลดข้อมูลใหม่ถ้าสุ่มสำเร็จ
-    }
+    _loadRewards(); // Reload rewards after generating new ones
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -181,6 +166,29 @@ class _AdminPagesState extends State<AdminPages> {
         ],
       ),
     );
+  }
+
+  /// ------------------ ฟังก์ชันล้างข้อมูล ------------------
+  Future<void> _clearAllData() async {
+    setState(() => _isSaving = true);
+    bool success = await _apiService.clearAllData();
+    setState(() => _isSaving = false);
+
+    _loadRewards(); // โหลดข้อมูลรางวัลใหม่หลังจากลบสำเร็จ
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("ล้างข้อมูลทั้งหมดสำเร็จแล้ว!"),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("เกิดข้อผิดพลาดในการล้างข้อมูล"),
+        ),
+      );
+    }
   }
 
   /// ------------------ UI หลัก ------------------
@@ -283,8 +291,8 @@ class _AdminPagesState extends State<AdminPages> {
       controller: controller,
       keyboardType:
           (labelText == 'จำนวนลอตเตอรี่' || labelText == 'ราคาสลากกินแบ่ง')
-          ? TextInputType.number
-          : TextInputType.text,
+              ? TextInputType.number
+              : TextInputType.text,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -321,189 +329,27 @@ class _AdminPagesState extends State<AdminPages> {
   }
 
   Widget _buildLotteryCard() {
+    // Check if rewardList is not null
     if (_rewardList == null) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF521F00),
-          borderRadius: BorderRadius.circular(15.0),
-          border: Border.all(color: const Color(0xFFFDAA26), width: 2),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "คุณยังไม่ได้สุ่มรางวัล",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildButton(
-              "สุ่มผลรางวัล",
-              Colors.orange,
-              Colors.white,
-              _randomRewards,
-            ),
-            const SizedBox(height: 10),
-            _buildButton(
-              "เลือกรางวัล",
-              Colors.orange,
-              Colors.white,
-              _selectRewardDialog,
-            ),
-          ],
-        ),
-      );
+      // Show a loading indicator if data is not yet loaded
+      return const Center(child: CircularProgressIndicator());
     }
-
+    // This Map will store the reward details in a structured way for display
     final Map<String, List<Rewardrank>> rewardsByRank = {};
     for (var reward in _rewardList!) {
       rewardsByRank.putIfAbsent(reward.rank, () => []).add(reward);
     }
 
-    // แยกรางวัลหลัก 1-3
-    final List<Widget> mainRewards = [];
-    for (String rank in ['1', '2', '3']) {
-      final rewards = rewardsByRank[rank];
+    // Define the ranks to be displayed in the specified order
+    const List<String> displayOrder = ['1', '2', '3', '4', '5'];
+
+    // Create a list of the display widgets
+    final List<Widget> rewardWidgets = [];
+    for (String rank in displayOrder) {
+      final List<Rewardrank>? rewards = rewardsByRank[rank];
       if (rewards != null && rewards.isNotEmpty) {
         for (var reward in rewards) {
-          mainRewards.add(_buildRewardRow(reward.rank, reward.number));
-        }
-      }
-    }
-    final List<Widget> additionalRewards = [];
-    for (String rank in ['4', '5']) {
-      final rewards = rewardsByRank[rank];
-      if (rewards != null && rewards.isNotEmpty) {
-        for (var reward in rewards) {
-          additionalRewards.add(_buildRewardRow(reward.rank, reward.number));
-        }
-      }
-    }
-    // สร้าง widget สำหรับเลขท้าย 3 ตัว ของรางวัลที่ 1
-    final Map<String, String> rankToPrize = {
-      '1': '6 ล้านบาท',
-      '2': '2 แสนบาท',
-      '3': '8 หมื่นบาท',
-      '4': '4 หมื่นบาท',
-      '5': '2 หมื่นบาท',
-    };
-    final List<Widget> last3DigitsWidget = [];
-    final List<Rewardrank>? firstPrize = rewardsByRank['1'];
-    if (firstPrize != null && firstPrize.isNotEmpty) {
-      final String number = firstPrize[0].number;
-      if (number.length >= 3) {
-        final String last3 = number.substring(number.length - 3);
-        last3DigitsWidget.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Display the rank and prize money
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'รางวัลเลขท้าย 3 ตัว',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    Text(
-                      rankToPrize['4'] ?? '',
-                      style: const TextStyle(
-                        color: Colors.lightGreen,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Display the main lottery number
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Text(
-                      last3,
-                      style: const TextStyle(
-                        color: Color(0xFF521F00),
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    }
-    final List<Widget> last2DigitsWidget = [];
-    final List<Rewardrank>? fifthPrize = rewardsByRank['5']; // รางวัล 5
-    if (fifthPrize != null && fifthPrize.isNotEmpty) {
-      for (var reward in fifthPrize) {
-        final String number = reward.number;
-        if (number.length >= 2) {
-          final String last2 = number.substring(number.length - 2);
-          last2DigitsWidget.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Display the rank and prize money
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'รางวัลเลขท้าย 2 ตัว',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      Text(
-                        rankToPrize['5'] ?? '',
-                        style: const TextStyle(
-                          color: Colors.lightGreen,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Display the last 2 digits in container
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(
-                        last2,
-                        style: const TextStyle(
-                          color: Color(0xFF521F00),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          rewardWidgets.add(_buildRewardRow(reward.rank, reward.number));
         }
       }
     }
@@ -531,14 +377,8 @@ class _AdminPagesState extends State<AdminPages> {
             style: TextStyle(color: Colors.white, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          ...mainRewards,
-          const SizedBox(height: 10),
-          // แสดงเลขท้าย 3 ตัวต่อจากรางวัลที่ 3
-          ...last3DigitsWidget,
-          const SizedBox(height: 20),
-          ...last2DigitsWidget, // แสดงเลขท้าย 2 ตัว
-          const SizedBox(height: 20),
-          ...additionalRewards,
+          // This is the new part that displays the rewards from the API
+          ...rewardWidgets,
           const SizedBox(height: 20),
           Column(
             children: [
@@ -556,9 +396,8 @@ class _AdminPagesState extends State<AdminPages> {
                 _randomRewards,
               ),
               const SizedBox(height: 10),
-              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white, () {
-                // TODO: clear all data API
-              }),
+              // ใช้ฟังก์ชันที่สร้างขึ้นใหม่เพื่อล้างข้อมูล
+              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white, _clearAllData),
             ],
           ),
         ],
@@ -568,7 +407,7 @@ class _AdminPagesState extends State<AdminPages> {
 
   // A new helper widget to display each reward row.
   Widget _buildRewardRow(String rank, String number) {
-    // Define a mapping from rank to prize money
+    // Define a mapping from rank to prize money, as per the image
     final Map<String, String> rankToPrize = {
       '1': '6 ล้านบาท',
       '2': '2 แสนบาท',
@@ -577,16 +416,9 @@ class _AdminPagesState extends State<AdminPages> {
       '5': '2 หมื่นบาท',
     };
 
-    // Calculate last 3 digits if rank is 1
-    String? last3Digits;
-    if (rank == '1' && number.length >= 3) {
-      last3Digits = number.substring(number.length - 3);
-    }
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Display the rank and prize money
           Row(
@@ -607,7 +439,7 @@ class _AdminPagesState extends State<AdminPages> {
             ],
           ),
           const SizedBox(height: 8),
-          // Display the main lottery number
+          // Display the lottery number
           Container(
             height: 50,
             decoration: BoxDecoration(
@@ -722,8 +554,7 @@ class _AdminPagesState extends State<AdminPages> {
       case 'logout':
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('ออกจากระบบ')));
-        Get.to(Login());
+        ).showSnackBar(const SnackBar(content: Text('ออกจากระบบถูกเลือก')));
         break;
     }
   }

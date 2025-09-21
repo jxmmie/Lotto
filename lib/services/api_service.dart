@@ -15,7 +15,7 @@ import 'package:flutter_application_1/models/reqeuest/wallert_req.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://a249db727355.ngrok-free.app';
+  final String baseUrl = 'https://a566dedbf9fd.ngrok-free.app';
 
   // Register
   Future<bool> register(RegisterRequest request) async {
@@ -306,5 +306,24 @@ class ApiService {
     final url = Uri.parse('$baseUrl/api/Lottery/claim/$oid');
     final res = await http.post(url);
     return res.statusCode == 200;
+  }
+
+  Future<bool> clearAllData() async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/Admin/clear-all'),
+    );
+
+    log('Status code for clear all data: ${response.statusCode}');
+    log('Response body for clear all data: ${response.body}');
+
+    if (response.statusCode == 200) {
+      log('All data has been successfully cleared!');
+      return true;
+    } else {
+      log(
+        'Failed to clear data. Status: ${response.statusCode}, Body: ${response.body}',
+      );
+      return false;
+    }
   }
 }
