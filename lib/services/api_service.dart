@@ -271,17 +271,6 @@ class ApiService {
     }
   }
 
-<<<<<<< HEAD
-  Future<Map<String, dynamic>> checkReward(int uid) async {
-    final url = Uri.parse("$baseUrl/api/Lottery/check/$uid");
-
-    final response = await http.post(url);
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception("เชื่อมต่อ API ไม่สำเร็จ: ${response.statusCode}");
-=======
   //ดึงข้อมูลรางวัลที่ผู้ใช้ได้รับ
   Future<GetUserRewardsRes?> getUserRewards(int uid) async {
     try {
@@ -317,7 +306,6 @@ class ApiService {
     } catch (e) {
       log('checkWinner error: $e');
       return null;
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
     }
   }
 }

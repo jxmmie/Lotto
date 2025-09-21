@@ -280,12 +280,7 @@ class _MylottoState extends State<Mylotto> {
                               ),
                               ElevatedButton(
                                 onPressed: () {
-<<<<<<< HEAD
                                   _loadRewards(); // Refresh rewards
-=======
-                                  // ไปยังหน้า MyWalletdata
-                                  Get.to(const WalletPages());
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,

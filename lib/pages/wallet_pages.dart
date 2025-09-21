@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
+import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -20,17 +20,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-=======
-import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
-import 'package:flutter_application_1/pages/credit_pages.dart';
-import 'package:flutter_application_1/pages/detail_user_pages.dart';
-import 'package:flutter_application_1/pages/myLotto.dart';
-import 'package:flutter_application_1/pages/showlotto_pages.dart';
-import 'package:flutter_application_1/pages/user_pages.dart';
-import 'package:flutter_application_1/services/api_service.dart';
-import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
 
 class WalletPages extends StatefulWidget {
   const WalletPages({super.key});
@@ -41,27 +30,20 @@ class WalletPages extends StatefulWidget {
 
 class _WalletPagesState extends State<WalletPages> {
   int _selectedIndex = 3;
-<<<<<<< HEAD
   final ApiService _api = ApiService();
   Map<String, dynamic>? result;
   bool isLoading = false;
   final box = GetStorage();
   late int uid = 0;
-=======
-  final box = GetStorage();
-  final ApiService _api = ApiService();
   var money = '';
-  late int uid = 0;
   List<Rewardrank>? _rewardList;
   List<Map<String, dynamic>> userWinningNumbers = [];
   bool _isLoading = true;
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
 
   @override
   void initState() {
     super.initState();
     uid = box.read('uid') ?? 0;
-<<<<<<< HEAD
     _checkReward();
   }
 
@@ -104,75 +86,6 @@ class _WalletPagesState extends State<WalletPages> {
     } finally {
       setState(() => isLoading = false);
     }
-=======
-    money = (box.read('wallet') ?? 0).toString();
-    _loadUserRewards();
-  }
-
-  Future<void> _loadUserRewards() async {
-    try {
-      final rewardList = await _api.showreward();
-
-      // TODO: เพิ่ม API เพื่อดึงลอตเตอรี่ของผู้ใช้ที่ถูกรางวัล
-      // final userWinnings = await _api.getUserWinningLottery(uid);
-
-      if (mounted) {
-        setState(() {
-          _rewardList = rewardList;
-          // TODO: ประมวลผลข้อมูลรางวัลของผู้ใช้
-          // userWinningNumbers = _processUserWinnings(userWinnings, rewardList);
-
-          // ตัวอย่างข้อมูลทดสอบ (ลบออกเมื่อมี API จริง)
-          userWinningNumbers = [
-            {
-              'prizeRank': 'รางวัลที่ 1',
-              'prizeAmount': '6 ล้านบาท',
-              'number': '3 2 7 8 2 7',
-            },
-            {
-              'prizeRank': 'รางวัลที่ 1',
-              'prizeAmount': '6 ล้านบาท',
-              'number': '1 2 3 4 5 6',
-            },
-          ];
-
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print("Error loading user rewards: $e");
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _onItemTapped(int index) {
-    Widget page;
-    switch (index) {
-      case 0:
-        page = const MyScreen();
-        break;
-      case 1:
-        page = const Mylotto();
-        break;
-      case 2:
-        page = const CreditPages();
-        break;
-      case 3:
-        page = const WalletPages();
-        break;
-      case 4:
-        page = const UserPages();
-        break;
-      default:
-        page = const MyScreen();
-    }
-
-    Get.to(page);
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
   }
 
   @override
@@ -320,7 +233,6 @@ class _WalletPagesState extends State<WalletPages> {
     );
   }
 
-<<<<<<< HEAD
   Widget _buildBodyContent(
     double screenWidth,
     double screenHeight,
@@ -350,55 +262,6 @@ class _WalletPagesState extends State<WalletPages> {
     double screenHeight,
     Color darkBrownColor,
     List<dynamic> winners,
-=======
-  // Widget สำหรับแสดงเมื่อมีรางวัล
-  Widget _buildWinningContent(double screenWidth, double screenHeight) {
-    const darkBrownColor = Color(0xFF521F00);
-
-    return SingleChildScrollView(
-      child: Container(
-        width: screenWidth * 0.88,
-        padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.05,
-          vertical: screenHeight * 0.03,
-        ),
-        decoration: BoxDecoration(
-          color: darkBrownColor,
-          borderRadius: BorderRadius.circular(screenWidth * 0.04),
-          border: Border.all(color: const Color(0xFFFDAA26), width: 2),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset("assets/Congratulations.png", width: screenWidth * 0.5),
-            SizedBox(height: screenHeight * 0.03),
-            ...userWinningNumbers
-                .map(
-                  (winning) => Padding(
-                    padding: EdgeInsets.only(bottom: screenHeight * 0.02),
-                    child: _buildWinningEntry(
-                      context,
-                      winning['prizeRank'],
-                      winning['prizeAmount'],
-                      winning['number'],
-                    ),
-                  ),
-                )
-                .toList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Widget สำหรับแสดงเมื่อไม่มีรางวัล
-  Widget _buildNoWinningContent(
-    double screenWidth,
-    double screenHeight,
-    Color themeRed,
-    Color themeOrange2,
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
   ) {
     const darkBrownColor = Color(0xFF521F00);
 
@@ -412,7 +275,6 @@ class _WalletPagesState extends State<WalletPages> {
         border: Border.all(color: const Color(0xFFFDAA26), width: 2),
       ),
       child: Column(
-<<<<<<< HEAD
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset("assets/Congratulations.png", width: screenWidth * 0.5),
@@ -444,8 +306,6 @@ class _WalletPagesState extends State<WalletPages> {
         border: Border.all(color: const Color(0xFFFDAA26), width: 2),
       ),
       child: Column(
-=======
->>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
