@@ -6,6 +6,8 @@ import 'package:flutter_application_1/models/reqeuest/register_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/UserByid_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Winner_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/getUserRewards_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/walletByuid_res.dart';
 import 'package:flutter_application_1/models/reqeuest/token.dart';
@@ -269,6 +271,7 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   Future<Map<String, dynamic>> checkReward(int uid) async {
     final url = Uri.parse("$baseUrl/api/Lottery/check/$uid");
 
@@ -278,6 +281,43 @@ class ApiService {
       return json.decode(response.body);
     } else {
       throw Exception("เชื่อมต่อ API ไม่สำเร็จ: ${response.statusCode}");
+=======
+  //ดึงข้อมูลรางวัลที่ผู้ใช้ได้รับ
+  Future<GetUserRewardsRes?> getUserRewards(int uid) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Lottery/my/$uid');
+      final res = await http.get(url);
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> jsonMap = json.decode(res.body);
+        return GetUserRewardsRes.fromJson(jsonMap);
+      } else {
+        log("Failed to load data with status code: ${res.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      log("Error fetching data: $e");
+      return null;
+    }
+  }
+
+  Future<WinnerRes?> checkWinner(int uid, WinnerRes req) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Lottery/check/$uid');
+
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(req.toJson()),
+      );
+      log('checkWinner status: ${res.statusCode}');
+      log('checkWinner body: ${res.body}');
+      if (res.statusCode == 200) {
+        return WinnerRes.fromJson(jsonDecode(res.body));
+      }
+    } catch (e) {
+      log('checkWinner error: $e');
+      return null;
+>>>>>>> bc2622e3c4bf16417055eb9c1334de09032f8636
     }
   }
 }
