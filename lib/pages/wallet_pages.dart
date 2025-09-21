@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get_storage/get_storage.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -24,15 +28,59 @@ class WalletPages extends StatefulWidget {
 }
 
 class _WalletPagesState extends State<WalletPages> {
-  int _selectedIndex = 3; // กำหนดหน้าเริ่มต้น (รางวัล)
-  bool hasData = true; // true = มีรางวัล, false = ไม่มีรางวัล
+  int _selectedIndex = 3;
+  final ApiService _api = ApiService();
+  Map<String, dynamic>? result;
+  bool isLoading = false;
+  final box = GetStorage();
+  late int uid = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    uid = box.read('uid') ?? 0;
+    _checkReward();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    // ในนี้สามารถใช้ Navigator.pushReplacement เพื่อไปหน้าต่างๆ
-    // หรือทำเป็น Widget แสดงใน body แทนก็ได้
+  }
+
+  Future<void> _checkReward() async {
+    setState(() => isLoading = true);
+    try {
+      final data = await _api.checkReward(uid);
+      debugPrint('API response: $data');
+
+      if (data is Map<String, dynamic>) {
+        // ตรวจสอบว่ามี 'winners' เป็น List หรือไม่
+        final winnersDynamic = data['winners'];
+        final List<dynamic> winners = winnersDynamic is List
+            ? winnersDynamic
+            : <dynamic>[];
+        if (winners.isNotEmpty) {
+          debugPrint('จำนวนรางวัล: ${winners.length}');
+          for (var i = 0; i < winners.length; i++) {
+            final w = winners[i];
+            debugPrint(
+              'รางวัล $i: rank=${w["rank"]}, prizeEach=${w["prizeEach"]}, lid=${w["lid"]}',
+            );
+          }
+        } else {
+          debugPrint('ไม่มีรางวัล');
+        }
+        setState(() => result = {'winners': winners});
+      } else {
+        setState(() => result = {'winners': []});
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+      setState(() => result = {'winners': []});
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -46,7 +94,6 @@ class _WalletPagesState extends State<WalletPages> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      //------------------------- Navbar บน -----------------------------
       appBar: AppBar(
         backgroundColor: themeBrown,
         titleSpacing: 0,
@@ -84,9 +131,6 @@ class _WalletPagesState extends State<WalletPages> {
           ),
         ],
       ),
-      //*********************** Navbar บน End. ************************
-
-      //------------------------- Body -----------------------------
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -97,41 +141,12 @@ class _WalletPagesState extends State<WalletPages> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: screenHeight * 0.04,
-              left: 0,
-              child: Opacity(
-                opacity: 0.9,
-                child: Image.asset(
-                  "assets/teen1.png",
-                  width: screenWidth * 0.35,
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Opacity(
-                opacity: 0.9,
-                child: Image.asset(
-                  "assets/teen2.png",
-                  width: screenWidth * 0.6,
-                ),
-              ),
-            ),
-            Center(
-              child: hasData
-                  ? _buildDataCard(screenWidth, screenHeight, darkBrownColor)
-                  : _buildNoDataCard(screenWidth, screenHeight),
-            ),
-          ],
+        child: Center(
+          child: isLoading
+              ? const CircularProgressIndicator()
+              : _buildBodyContent(screenWidth, screenHeight, darkBrownColor),
         ),
       ),
-      //*********************** Body End. ************************
-
-      //------------------------- Navbar ล่าง -----------------------------
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
@@ -145,7 +160,7 @@ class _WalletPagesState extends State<WalletPages> {
           fontWeight: FontWeight.bold,
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 0),
-        items: const <BottomNavigationBarItem>[
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             label: 'หน้าหลัก',
@@ -165,15 +180,38 @@ class _WalletPagesState extends State<WalletPages> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
         ],
       ),
-      //*********************** Navbar ล่าง End. ************************
     );
   }
 
-  // Card แสดงข้อมูลรางวัล
+  Widget _buildBodyContent(
+    double screenWidth,
+    double screenHeight,
+    Color darkBrownColor,
+  ) {
+    if (result == null || !result!.containsKey('winners')) {
+      return _buildNoDataCard(screenWidth, screenHeight);
+    }
+
+    final dynamic winners = result!['winners'];
+
+    if (winners is! List) {
+      return _buildNoDataCard(screenWidth, screenHeight);
+    }
+    final List<dynamic> winner = winners;
+    if (winner.isNotEmpty) {
+      return _buildDataCard(screenWidth, screenHeight, darkBrownColor, winners);
+    } else {
+      return _buildNoDataCard(screenWidth, screenHeight);
+    }
+  }
+
+  // ... (ส่วน widget _buildDataCard, _buildNoDataCard, _buildWinningEntry เหมือนเดิม)
+  // ผมเอาส่วนเหล่านี้ไว้เหมือนเดิมกับโค้ดของคุณ (ไม่ต้องแก้ถ้าอยากให้ UI เดิม)
   Widget _buildDataCard(
     double screenWidth,
     double screenHeight,
     Color darkBrownColor,
+    List<dynamic> winners,
   ) {
     return Container(
       width: screenWidth * 0.88,
@@ -191,18 +229,22 @@ class _WalletPagesState extends State<WalletPages> {
         children: [
           Image.asset("assets/Congratulations.png", width: screenWidth * 0.5),
           SizedBox(height: screenHeight * 0.03),
-          _buildWinningEntry(
-            screenWidth,
-            "รางวัลที่ 1",
-            "6 ล้านบาท",
-            "3 2 7 8 2 7",
+          ...winners.map(
+            (w) => Padding(
+              padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+              child: _buildWinningEntry(
+                screenWidth,
+                "รางวัลที่ ${w["rank"]}",
+                "${w["prizeEach"]} บาท",
+                w["lid"].toString(),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // Card แสดงว่าไม่มีรางวัล
   Widget _buildNoDataCard(double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.88,
@@ -244,7 +286,6 @@ class _WalletPagesState extends State<WalletPages> {
     );
   }
 
-  // Widget แสดงรายการรางวัล
   Widget _buildWinningEntry(
     double screenWidth,
     String prizeText,

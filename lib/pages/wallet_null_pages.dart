@@ -15,6 +15,7 @@ class MyWalletnull extends StatefulWidget {
 class _MyWalletnullState extends State<MyWalletnull> {
   //---------------Funtion ปุ่ม Navbar
   int _selectedIndex = 1;
+
   void _onItemTapped(int index) {
     Widget page;
     switch (index) {

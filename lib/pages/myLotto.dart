@@ -70,6 +70,22 @@ class _MylottoState extends State<Mylotto> {
     }
   }
 
+  String? getRewardNumber(String rank) {
+    try {
+      return _rewardList?.firstWhere((reward) => reward.rank == rank).number;
+    } catch (e) {
+      return null; // ถ้าไม่เจอ ให้เป็น null
+    }
+  }
+
+  String? Last3Digit() {
+    final rank1Number = getRewardNumber('1'); // ดึงเลขรางวัลที่ 1
+    if (rank1Number == null || rank1Number.length < 3) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 3); // เอา 3 ตัวท้าย
+  }
+
   Future<void> _loadRewards() async {
     try {
       final rewardList = await _api.showreward();
@@ -257,15 +273,14 @@ class _MylottoState extends State<Mylotto> {
                               const Text(
                                 'รางวัลที่ออก',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 255, 255, 255),
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               ElevatedButton(
                                 onPressed: () {
-                                  // ไปยังหน้า MyWalletdata
-                                  Get.to(const MyWalletdata());
+                                  _loadRewards(); // Refresh rewards
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,
@@ -281,8 +296,30 @@ class _MylottoState extends State<Mylotto> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          // แสดงรางวัลแบบใหม่ - แยกแถวตามจำนวนรางวัลจริง (เฉพาะรางวัลที่ 1, 2, 3)
-                          ..._buildAllRewards(),
+                          Center(
+                            child: _prizeBox(
+                              'รางวัลที่ 1',
+                              getRewardNumber('1'),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          GridView(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                  childAspectRatio: 2.2,
+                                ),
+                            children: [
+                              _prizeBox('รางวัลที่ 2', getRewardNumber('2')),
+                              _prizeBox('รางวัลที่ 3', getRewardNumber('3')),
+                              _prizeBox('รางวัลเลขท้าย 3 ตัว', Last3Digit()),
+                              _prizeBox('รางวัลเลขท้าย 2 ตัว', null),
+                            ],
+                          ),
                         ],
                       ),
                     ),

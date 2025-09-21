@@ -221,8 +221,6 @@ class ApiService {
     }
   }
 
-
-
   // Buy Lotto
   Future<bool> buyLotto(int uid, int lid) async {
     final body = jsonEncode({'uid': uid, 'lid': lid});
@@ -245,27 +243,41 @@ class ApiService {
       return false;
     }
   }
-   Future<UpdateWalletResponse?> updateWallet(int uid, UpdateWalletRequest req) async {
-  try {
-    final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
 
-    final res = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(req.toJson()),
-    );
+  Future<UpdateWalletResponse?> updateWallet(
+    int uid,
+    UpdateWalletRequest req,
+  ) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
+
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(req.toJson()),
+      );
       log('updateWallet status: ${res.statusCode}');
-    log('updateWallet body: ${res.body}');
+      log('updateWallet body: ${res.body}');
       if (res.statusCode == 200) {
-      return UpdateWalletResponse.fromJson(jsonDecode(res.body));
-    } else {
-      return UpdateWalletResponse(success: false, message: res.body);
+        return UpdateWalletResponse.fromJson(jsonDecode(res.body));
+      } else {
+        return UpdateWalletResponse(success: false, message: res.body);
       }
-  } catch (e) {
-    log('updateWallet error: $e');
-    return UpdateWalletResponse(success: false, message: e.toString());
+    } catch (e) {
+      log('updateWallet error: $e');
+      return UpdateWalletResponse(success: false, message: e.toString());
+    }
+  }
+
+  Future<Map<String, dynamic>> checkReward(int uid) async {
+    final url = Uri.parse("$baseUrl/api/Lottery/check/$uid");
+
+    final response = await http.post(url);
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("เชื่อมต่อ API ไม่สำเร็จ: ${response.statusCode}");
+    }
   }
 }
-
-}
-

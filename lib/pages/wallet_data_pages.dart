@@ -26,6 +26,13 @@ class _MyWalletdataState extends State<MyWalletdata> {
     money = (box.read('wallet') ?? 0).toString();
   }
 
+  List<Map<String, String>> prizes = [
+    // {"prizeText": "รางวัลที่ 1", "amountText": "6 ล้านบาท", "number": "327827"},
+    // {"prizeText": "รางวัลที่ 2", "amountText": "2 แสนบาท", "number": "27"},
+    // {"prizeText": "รางวัลที่ 3", "amountText": "8 หมื่นบาท", "number": "27"},
+    // {"prizeText": "เลขท้าย 3 ตัว", "amountText": "4 หมื่นบาท", "number": "27"},
+    // {"prizeText": "เลขท้าย 2 ตัว", "amountText": "2 หมื่นบาท", "number": "27"},
+  ];
   void _onItemTapped(int index) {
     Widget page;
     switch (index) {
@@ -60,6 +67,8 @@ class _MyWalletdataState extends State<MyWalletdata> {
     // Colors
     const themeBrown = Color(0xFF521F00);
     const themeOrange = Color(0xffFF8400);
+    const themeOrange2 = Color(0xFFFF8000);
+    const themeRed = Color(0xFFCF0000);
     const goldColor = Color(0xFFFDD835);
     const darkBrownColor = Color(0xFF521F00);
     const darkCardColor = Color(
@@ -156,34 +165,63 @@ class _MyWalletdataState extends State<MyWalletdata> {
                   borderRadius: BorderRadius.circular(screenWidth * 0.04),
                   border: Border.all(color: const Color(0xFFFDAA26), width: 2),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      "assets/Congratulations.png",
-                      width: screenWidth * 0.5,
-                    ),
-                    SizedBox(height: screenHeight * 0.03),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: screenHeight * 0.02),
-                      child: _buildWinningEntry(
-                        context,
-                        "รางวัลที่ 1",
-                        "6 ล้านบาท",
-                        "3 2 7 8 2 7",
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: screenHeight * 0.02),
-                      child: _buildWinningEntry(
-                        context,
-                        "รางวัลที่ 1",
-                        "6 ล้านบาท",
-                        "3 2 7 8 2 7",
-                      ),
-                    ),
-                  ],
+                // ✅ ป้องกัน overflow ด้วย SingleChildScrollView
+                child: SingleChildScrollView(
+                  child: prizes.isEmpty
+                      // ❌ ถ้าไม่มีรางวัล
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.sentiment_dissatisfied_outlined,
+                              color: themeRed,
+                              size: screenWidth * 0.3,
+                            ),
+                            SizedBox(height: screenHeight * 0.02),
+                            const Text(
+                              "เสียใจด้วยค่ะ",
+                              style: TextStyle(
+                                color: themeRed,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            const Text(
+                              "คุณไม่มีรางวัลที่ถูกเลย",
+                              style: TextStyle(
+                                color: themeOrange2,
+                                fontSize: 21,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                      // ✅ ถ้ามีรางวัล
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              "assets/Congratulations.png",
+                              width: screenWidth * 0.5,
+                            ),
+                            SizedBox(height: screenHeight * 0.03),
+                            ...prizes.map(
+                              (prize) => Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: screenHeight * 0.02,
+                                ),
+                                child: _buildWinningEntry(
+                                  context,
+                                  prize['prizeText'] ?? "",
+                                  prize['amountText'] ?? "",
+                                  prize['number'] ?? "",
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
             ),

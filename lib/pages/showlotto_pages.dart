@@ -59,17 +59,34 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
+  String? Last3Digit() {
+    final rank1Number = getRewardNumber('1'); // ดึงเลขรางวัลที่ 1
+    if (rank1Number == null || rank1Number.length < 3) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 3); // เอา 3 ตัวท้าย
+  }
+
   Future<void> _loadRewards() async {
     try {
       final rewardList = await _api.showreward();
       if (mounted) {
         setState(() {
           _rewardList = rewardList;
+          log(_rewardList.toString());
         });
         log('Rewards loaded successfully: ${rewardList?.length ?? 0} rewards');
       }
     } catch (e) {
       log('Error loading rewards: $e');
+    }
+  }
+
+  String? getRewardNumber(String rank) {
+    try {
+      return _rewardList?.firstWhere((reward) => reward.rank == rank).number;
+    } catch (e) {
+      return null; // ถ้าไม่เจอ ให้เป็น null
     }
   }
 
@@ -112,134 +129,6 @@ class _MyScreenState extends State<MyScreen> {
       _randomLottery = null;
       _lotteryList = results;
     });
-  }
-
-  // ฟังก์ชันสำหรับหารางวัลตาม rank (สามารถมีหลายรางวัลต่อ rank)
-  List<String> _getRewardNumbers(String rank) {
-    if (_rewardList == null) return [];
-
-    return _rewardList!
-        .where((reward) => reward.rank.toString() == rank)
-        .map((reward) => reward.number)
-        .toList();
-  }
-
-  // ฟังก์ชันสำหรับหารางวัลเดี่ยวตาม rank (สำหรับรางวัลที่ 1)
-  String? _getRewardNumber(String rank) {
-    final rewards = _getRewardNumbers(rank);
-    return rewards.isNotEmpty ? rewards.first : null;
-  }
-
-  // ฟังก์ชันสำหรับสร้างการแสดงผลรางวัลทั้งหมด (เฉพาะรางวัลที่ 1, 2, 3)
-  List<Widget> _buildAllRewards() {
-    if (_rewardList == null || _rewardList!.isEmpty) {
-      return [_buildNoRewardsDisplay()];
-    }
-
-    List<Widget> rewardWidgets = [];
-
-    // จัดกลุ่มรางวัลตาม rank
-    Map<String, List<String>> rewardsByRank = {};
-    for (var reward in _rewardList!) {
-      String rank = reward.rank.toString();
-      if (!rewardsByRank.containsKey(rank)) {
-        rewardsByRank[rank] = [];
-      }
-      rewardsByRank[rank]!.add(reward.number);
-    }
-
-    // แสดงเฉพาะรางวัลที่ 1, 2, 3
-    List<String> rankOrder = ['1', '2', '3'];
-    bool hasAnyReward = false;
-
-    for (String rank in rankOrder) {
-      List<String>? numbers = rewardsByRank[rank];
-      if (numbers != null && numbers.isNotEmpty) {
-        hasAnyReward = true;
-        for (String number in numbers) {
-          rewardWidgets.add(_prizeBox('รางวัลที่ $rank', number));
-          rewardWidgets.add(const SizedBox(height: 10));
-        }
-      }
-    }
-
-    // ถ้าไม่มีรางวัลเลย แสดงรางวัลเปล่า
-    if (!hasAnyReward) {
-      return [_buildNoRewardsDisplay()];
-    }
-
-    return rewardWidgets;
-  }
-
-  // ฟังก์ชันสำหรับแสดงเมื่อไม่มีรางวัل
-  Widget _buildNoRewardsDisplay() {
-    return Column(
-      children: [
-        Center(child: _prizeBox('รางวัลที่ 1', null)),
-        const SizedBox(height: 10),
-        _prizeBox('รางวัลที่ 2', null),
-        const SizedBox(height: 10),
-        _prizeBox('รางวัลที่ 3', null),
-      ],
-    );
-  }
-
-  Widget _buildRewardRow(String rank, String number) {
-    // Define a mapping from rank to prize money, as per the image
-    final Map<String, String> rankToPrize = {
-      '1': '6 ล้านบาท',
-      '2': '2 แสนบาท',
-      '3': '8 หมื่นบาท',
-      '4': '4 หมื่นบาท',
-      '5': '2 หมื่นบาท',
-    };
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        children: [
-          // Display the rank and prize money
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'รางวัลที่ $rank',
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-              ),
-              Text(
-                rankToPrize[rank] ?? '',
-                style: const TextStyle(
-                  color: Colors.lightGreen,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Display the lottery number
-          Container(
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  color: Color(0xFF521F00),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _marketLotteryBox(
@@ -521,7 +410,7 @@ class _MyScreenState extends State<MyScreen> {
                               const Text(
                                 'รางวัลที่ออก',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 255, 255, 255),
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -544,8 +433,30 @@ class _MyScreenState extends State<MyScreen> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          // แสดงรางวัลแบบใหม่ - แยกแถวตามจำนวนรางวัลจริง (เฉพาะรางวัลที่ 1, 2, 3)
-                          ..._buildAllRewards(),
+                          Center(
+                            child: _prizeBox(
+                              'รางวัลที่ 1',
+                              getRewardNumber('1'),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          GridView(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                  childAspectRatio: 2.2,
+                                ),
+                            children: [
+                              _prizeBox('รางวัลที่ 2', getRewardNumber('2')),
+                              _prizeBox('รางวัลที่ 3', getRewardNumber('3')),
+                              _prizeBox('รางวัลเลขท้าย 3 ตัว', Last3Digit()),
+                              _prizeBox('รางวัลเลขท้าย 2 ตัว', null),
+                            ],
+                          ),
                         ],
                       ),
                     ),
