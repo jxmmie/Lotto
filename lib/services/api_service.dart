@@ -6,6 +6,8 @@ import 'package:flutter_application_1/models/reqeuest/register_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Lotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/UserByid_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/Winner_res.dart';
+import 'package:flutter_application_1/models/reqeuest/respon/getUserRewards_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/myLotto_res.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/walletByuid_res.dart';
 import 'package:flutter_application_1/models/reqeuest/token.dart';
@@ -221,8 +223,6 @@ class ApiService {
     }
   }
 
-
-
   // Buy Lotto
   Future<bool> buyLotto(int uid, int lid) async {
     final body = jsonEncode({'uid': uid, 'lid': lid});
@@ -245,27 +245,67 @@ class ApiService {
       return false;
     }
   }
-   Future<UpdateWalletResponse?> updateWallet(int uid, UpdateWalletRequest req) async {
-  try {
-    final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
 
-    final res = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(req.toJson()),
-    );
+  Future<UpdateWalletResponse?> updateWallet(
+    int uid,
+    UpdateWalletRequest req,
+  ) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Wallet/$uid/update');
+
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(req.toJson()),
+      );
       log('updateWallet status: ${res.statusCode}');
-    log('updateWallet body: ${res.body}');
+      log('updateWallet body: ${res.body}');
       if (res.statusCode == 200) {
-      return UpdateWalletResponse.fromJson(jsonDecode(res.body));
-    } else {
-      return UpdateWalletResponse(success: false, message: res.body);
+        return UpdateWalletResponse.fromJson(jsonDecode(res.body));
+      } else {
+        return UpdateWalletResponse(success: false, message: res.body);
       }
-  } catch (e) {
-    log('updateWallet error: $e');
-    return UpdateWalletResponse(success: false, message: e.toString());
+    } catch (e) {
+      log('updateWallet error: $e');
+      return UpdateWalletResponse(success: false, message: e.toString());
+    }
+  }
+
+  //ดึงข้อมูลรางวัลที่ผู้ใช้ได้รับ
+  Future<GetUserRewardsRes?> getUserRewards(int uid) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Lottery/my/$uid');
+      final res = await http.get(url);
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> jsonMap = json.decode(res.body);
+        return GetUserRewardsRes.fromJson(jsonMap);
+      } else {
+        log("Failed to load data with status code: ${res.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      log("Error fetching data: $e");
+      return null;
+    }
+  }
+
+  Future<WinnerRes?> checkWinner(int uid, WinnerRes req) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/Lottery/check/$uid');
+
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(req.toJson()),
+      );
+      log('checkWinner status: ${res.statusCode}');
+      log('checkWinner body: ${res.body}');
+      if (res.statusCode == 200) {
+        return WinnerRes.fromJson(jsonDecode(res.body));
+      }
+    } catch (e) {
+      log('checkWinner error: $e');
+      return null;
+    }
   }
 }
-
-}
-

@@ -3,7 +3,8 @@ import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
 import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
-import 'package:flutter_application_1/pages/wallet_data_pages.dart';
+
+import 'package:flutter_application_1/pages/wallet_pages.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -38,7 +39,7 @@ class _UserPagesState extends State<UserPages> {
         page = const CreditPages();
         break;
       case 3:
-        page = const MyWalletdata();
+        page = const WalletPages();
         break;
       case 4:
         page = const UserPages();

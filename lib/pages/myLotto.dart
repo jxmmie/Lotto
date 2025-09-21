@@ -8,8 +8,8 @@ import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
-import 'package:flutter_application_1/pages/wallet_data_pages.dart';
-import 'package:flutter_application_1/pages/wallet_null_pages.dart';
+
+import 'package:flutter_application_1/pages/wallet_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -151,7 +151,7 @@ class _MylottoState extends State<Mylotto> {
         page = const CreditPages();
         break;
       case 3:
-        page = const MyWalletdata();
+        page = const WalletPages();
         break;
       case 4:
         page = const UserPages();
@@ -265,7 +265,7 @@ class _MylottoState extends State<Mylotto> {
                               ElevatedButton(
                                 onPressed: () {
                                   // ไปยังหน้า MyWalletdata
-                                  Get.to(const MyWalletdata());
+                                  Get.to(const WalletPages());
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,
