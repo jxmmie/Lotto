@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/reqeuest/create_lotto_request.dart';
 import 'package:flutter_application_1/models/reqeuest/respon/Reward_res.dart';
+import 'package:flutter_application_1/pages/login_pages.dart';
 import 'dart:math';
 import 'dart:developer';
 
@@ -178,15 +179,11 @@ class _AdminPagesState extends State<AdminPages> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("ล้างข้อมูลทั้งหมดสำเร็จแล้ว!"),
-        ),
+        const SnackBar(content: Text("ล้างข้อมูลทั้งหมดสำเร็จแล้ว!")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("เกิดข้อผิดพลาดในการล้างข้อมูล"),
-        ),
+        const SnackBar(content: Text("เกิดข้อผิดพลาดในการล้างข้อมูล")),
       );
     }
   }
@@ -291,8 +288,8 @@ class _AdminPagesState extends State<AdminPages> {
       controller: controller,
       keyboardType:
           (labelText == 'จำนวนลอตเตอรี่' || labelText == 'ราคาสลากกินแบ่ง')
-              ? TextInputType.number
-              : TextInputType.text,
+          ? TextInputType.number
+          : TextInputType.text,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -329,21 +326,92 @@ class _AdminPagesState extends State<AdminPages> {
   }
 
   Widget _buildLotteryCard() {
-    // Check if rewardList is not null
     if (_rewardList == null) {
-      // Show a loading indicator if data is not yet loaded
-      return const Center(child: CircularProgressIndicator());
+      // ยังโหลดไม่เสร็จ → แสดง loading
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF521F00),
+          borderRadius: BorderRadius.circular(15.0),
+          border: Border.all(color: const Color(0xFFFDAA26), width: 2),
+        ),
+        child: Column(
+          children: [
+            const Text(
+              "ยังไม่ได้กำหนดรางวัล",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            _buildButton(
+              "เลือกรางวัล",
+              Colors.orange,
+              Colors.white,
+              _selectRewardDialog,
+            ),
+            const SizedBox(height: 10),
+            _buildButton(
+              "สุ่มผลรางวัล",
+              Colors.orange,
+              Colors.white,
+              _randomRewards,
+            ),
+          ],
+        ),
+      );
     }
-    // This Map will store the reward details in a structured way for display
+
+    if (_rewardList!.isEmpty) {
+      // โหลดเสร็จแล้ว แต่ไม่มีข้อมูล → แสดงปุ่มแทน
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF521F00),
+          borderRadius: BorderRadius.circular(15.0),
+          border: Border.all(color: const Color(0xFFFDAA26), width: 2),
+        ),
+        child: Column(
+          children: [
+            const Text(
+              "ยังไม่มีข้อมูลรางวัล",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildButton(
+              "เลือกรางวัล",
+              Colors.orange,
+              Colors.white,
+              _selectRewardDialog,
+            ),
+            const SizedBox(height: 10),
+            _buildButton(
+              "สุ่มผลรางวัล",
+              Colors.orange,
+              Colors.white,
+              _randomRewards,
+            ),
+            const SizedBox(height: 10),
+            _buildButton(
+              "ล้างข้อมูลทั้งหมด",
+              Colors.red,
+              Colors.white,
+              _clearAllData,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ถ้ามีข้อมูล → โชว์รางวัลตามปกติ
     final Map<String, List<Rewardrank>> rewardsByRank = {};
     for (var reward in _rewardList!) {
       rewardsByRank.putIfAbsent(reward.rank, () => []).add(reward);
     }
 
-    // Define the ranks to be displayed in the specified order
     const List<String> displayOrder = ['1', '2', '3', '4', '5'];
-
-    // Create a list of the display widgets
     final List<Widget> rewardWidgets = [];
     for (String rank in displayOrder) {
       final List<Rewardrank>? rewards = rewardsByRank[rank];
@@ -377,7 +445,6 @@ class _AdminPagesState extends State<AdminPages> {
             style: TextStyle(color: Colors.white, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          // This is the new part that displays the rewards from the API
           ...rewardWidgets,
           const SizedBox(height: 20),
           Column(
@@ -396,8 +463,12 @@ class _AdminPagesState extends State<AdminPages> {
                 _randomRewards,
               ),
               const SizedBox(height: 10),
-              // ใช้ฟังก์ชันที่สร้างขึ้นใหม่เพื่อล้างข้อมูล
-              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white, _clearAllData),
+              _buildButton(
+                "ล้างข้อมูลทั้งหมด",
+                Colors.red,
+                Colors.white,
+                _clearAllData,
+              ),
             ],
           ),
         ],
@@ -552,9 +623,11 @@ class _AdminPagesState extends State<AdminPages> {
         _showAddLotteryCard(context);
         break;
       case 'logout':
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('ออกจากระบบถูกเลือก')));
+        // เวลากดออกจากระบบ ให้ไปหน้า AdminPages ใหม่
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const Login()),
+          (route) => false,
+        );
         break;
     }
   }

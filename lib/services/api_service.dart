@@ -15,7 +15,7 @@ import 'package:flutter_application_1/models/reqeuest/wallert_req.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://a566dedbf9fd.ngrok-free.app';
+  final String baseUrl = 'http://10.0.2.2:8080';
 
   // Register
   Future<bool> register(RegisterRequest request) async {
@@ -309,9 +309,7 @@ class ApiService {
   }
 
   Future<bool> clearAllData() async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/Admin/clear-all'),
-    );
+    final response = await http.delete(Uri.parse('$baseUrl/Admin/clear-all'));
 
     log('Status code for clear all data: ${response.statusCode}');
     log('Response body for clear all data: ${response.body}');
