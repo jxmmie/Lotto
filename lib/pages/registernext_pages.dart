@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/models/reqeuest/wallert_req.dart';
+import 'package:flutter_application_1/pages/login_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class RegisternextPages extends StatefulWidget {
   final int? uid; // ต้องส่งมาจากหน้าก่อน
@@ -50,16 +53,13 @@ class _RegisternextPagesState extends State<RegisternextPages> {
       accountId: account.isEmpty ? null : account,
       money: money,
     );
-     final result = await _api.updateWallet(
-      widget.uid!,
-       req,
-    );
+    final result = await _api.updateWallet(widget.uid!, req);
     setState(() => _loading = false);
 
     if (!mounted) return;
 
-      _snack('บันทึกข้อมูลธนาคาร/ยอดเงินเรียบร้อย!');
-      Navigator.pushReplacementNamed(context, '/login');
+    _snack('บันทึกข้อมูลธนาคาร/ยอดเงินเรียบร้อย!');
+    Get.to(Login());
   }
 
   void _snack(String msg) {
@@ -168,8 +168,9 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                 controller: _amountCtrl,
                                 decoration: InputDecoration(
                                   hintText: "ใส่จำนวนเงิน (ตัวเลข)",
-                                  prefixIcon:
-                                      const Icon(Icons.monetization_on_outlined),
+                                  prefixIcon: const Icon(
+                                    Icons.monetization_on_outlined,
+                                  ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
@@ -177,9 +178,10 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
-                                keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                                 inputFormatters: [
                                   FilteringTextInputFormatter.allow(
                                     RegExp(r'[0-9.,]'),
@@ -187,7 +189,8 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                 ],
                                 validator: (v) {
                                   final amt = _parseAmount(v ?? '');
-                                  if (amt == null) return 'กรอกจำนวนเงินให้ถูกต้อง';
+                                  if (amt == null)
+                                    return 'กรอกจำนวนเงินให้ถูกต้อง';
                                   if (amt <= 0) return 'จำนวนเงินต้องมากกว่า 0';
                                   return null;
                                 },
@@ -201,7 +204,9 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _loading ? null : () => Navigator.pop(context),
+                            onPressed: _loading
+                                ? null
+                                : () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xff6E6E6E),
                               foregroundColor: Colors.white,
@@ -210,7 +215,10 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                 borderRadius: BorderRadius.circular(18),
                               ),
                             ),
-                            child: const Text("ถอยกลับ", style: TextStyle(fontSize: 18)),
+                            child: const Text(
+                              "ถอยกลับ",
+                              style: TextStyle(fontSize: 18),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -237,8 +245,10 @@ class _RegisternextPagesState extends State<RegisternextPages> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text("สมัครสมาชิก",
-                                    style: TextStyle(fontSize: 18)),
+                                : const Text(
+                                    "สมัครสมาชิก",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
                           ),
                         ),
                       ],

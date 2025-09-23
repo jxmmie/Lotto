@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/login_pages.dart';
 import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
 
@@ -204,7 +205,10 @@ class _UserPagesState extends State<UserPages> {
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    box.remove('uid');
+                                    Get.to(Login());
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xff890002),
                                     foregroundColor: Colors.white,

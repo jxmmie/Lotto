@@ -139,7 +139,13 @@ class _MyScreenState extends State<MyScreen> {
     int lid,
   ) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        final refresh = await Get.to(() => MyScreen());
+        if (refresh == true) {
+          await fetchLotteries();
+          await loadWallet();
+          setState(() {});
+        }
         if (status == "sold") return; // ถ้า sold ห้ามซื้อ
         // Show Card ยืนยันการซื้อ
         showDialog(
@@ -182,12 +188,15 @@ class _MyScreenState extends State<MyScreen> {
                     Navigator.pop(context);
                     bool result = await _api.buyLotto(uid, lid);
                     if (result) {
+                      fetchLotteries();
+                      loadWallet();
+                      setState(() {});
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("ซื้อสำเร็จ!")),
                       );
-                      fetchLotteries(); // โหลดลิสต์ใหม่
-                      loadWallet(); // อัปเดตเงินในกระเป๋า
                     } else {
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("ซื้อไม่สำเร็จ!")),
                       );

@@ -35,16 +35,17 @@ class _MylottoState extends State<Mylotto> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-      if (!mounted) return;
-      setState(() {
-        // ทำงานทุก 5 วินาที
-      });
+
+    if (!mounted) return;
+    setState(() {
+      // ทำงานทุก 5 วินาที
     });
+
     uid = box.read('uid') ?? 0;
     money = (box.read('wallet') ?? 0).toString();
     if (uid != 0) {
       loadLotto();
+      loadWallet();
     }
     _loadRewards(); // เพิ่มการโหลดรางวัล
   }
@@ -97,6 +98,16 @@ class _MylottoState extends State<Mylotto> {
       }
     } catch (e) {
       log('Error loading rewards: $e');
+    }
+  }
+
+  Future<void> loadWallet() async {
+    final walletData = await _api.getWalletByid(uid);
+    if (!mounted) return;
+    if (walletData != null) {
+      setState(() {
+        money = walletData.money.toStringAsFixed(2);
+      });
     }
   }
 
