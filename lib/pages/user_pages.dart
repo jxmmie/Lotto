@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
+import 'package:flutter_application_1/pages/login_pages.dart'; // อย่าลืม import หน้า login
 import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/showlotto_pages.dart';
-
 import 'package:flutter_application_1/pages/wallet_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get/get.dart';
@@ -22,9 +22,9 @@ class _UserPagesState extends State<UserPages> {
   final ApiService _api = ApiService();
   var money = '';
   late int uid = 0;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     uid = box.read('uid') ?? 0;
     if (uid != 0) {
@@ -54,7 +54,6 @@ class _UserPagesState extends State<UserPages> {
       default:
         page = const MyScreen();
     }
-
     Get.to(() => page);
   }
 
@@ -69,10 +68,19 @@ class _UserPagesState extends State<UserPages> {
     }
   }
 
+  // เพิ่มฟังก์ชันสำหรับออกจากระบบและไปหน้า Login
+  void _logoutAndNavigate() {
+    box.remove('uid'); // ลบ uid
+    box.remove('wallet'); // ลบ wallet ที่บันทึกไว้ใน GetStorage
+
+    // นำทางไปยังหน้า LoginPage และลบหน้าเดิมทั้งหมดออกจาก Stack
+    Get.offAll(() => const Login());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // พื้นหลังนอกสุด
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: const Color(0xFF521F00),
         elevation: 0,
@@ -144,7 +152,6 @@ class _UserPagesState extends State<UserPages> {
                   child: Image.asset("assets/teen2.png", width: 230),
                 ),
               ),
-              // เพิ่มเนื้อหาตรงนี้
               Positioned.fill(
                 child: SingleChildScrollView(
                   child: Padding(
@@ -204,7 +211,8 @@ class _UserPagesState extends State<UserPages> {
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  // แก้ไขตรงนี้: เพิ่มการเรียกฟังก์ชัน _logoutAndNavigate
+                                  onPressed: _logoutAndNavigate,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xff890002),
                                     foregroundColor: Colors.white,
@@ -215,7 +223,6 @@ class _UserPagesState extends State<UserPages> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-
                                   child: const Text(
                                     "ออกจากระบบ",
                                     style: TextStyle(fontSize: 17),
@@ -234,8 +241,6 @@ class _UserPagesState extends State<UserPages> {
           ),
         ),
       ),
-
-      //------------------------- Navbar ล่าง -----------------------------
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF321400),
         elevation: 0,
@@ -244,7 +249,6 @@ class _UserPagesState extends State<UserPages> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        // เพิ่ม selectedLabelStyle และ unselectedLabelStyle
         selectedLabelStyle: const TextStyle(
           color: Color(0xffFF8400),
           fontWeight: FontWeight.bold,
@@ -270,7 +274,6 @@ class _UserPagesState extends State<UserPages> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'สมาชิก'),
         ],
       ),
-      //*********************** Navbar ล่าง End. ************************
     );
   }
 }

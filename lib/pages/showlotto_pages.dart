@@ -7,7 +7,6 @@ import 'package:flutter_application_1/pages/credit_pages.dart';
 import 'package:flutter_application_1/pages/detail_user_pages.dart';
 import 'package:flutter_application_1/pages/myLotto.dart';
 import 'package:flutter_application_1/pages/user_pages.dart';
-
 import 'package:flutter_application_1/pages/wallet_pages.dart';
 import 'package:flutter_application_1/services/api_service.dart';
 import 'package:get/get.dart';
@@ -28,6 +27,7 @@ class _MyScreenState extends State<MyScreen> {
   Lottery? _randomLottery;
   List<String> _inputNumbers = List.filled(6, '');
   List<Rewardrank>? _rewardList;
+  bool _rewardsLoaded = false; // Add this state variable
   final box = GetStorage();
   late int uid = 0;
   var money = '';
@@ -47,9 +47,11 @@ class _MyScreenState extends State<MyScreen> {
     try {
       final response = await _api.getLotto();
       if (response != null && response.lotteries.isNotEmpty) {
-        setState(() {
-          _lotteryList = response.lotteries;
-        });
+        if (mounted) {
+          setState(() {
+            _lotteryList = response.lotteries;
+          });
+        }
         log('Lottery list updated successfully.');
       } else {
         log('No lotteries found or API returned null.');
@@ -60,11 +62,11 @@ class _MyScreenState extends State<MyScreen> {
   }
 
   String? Last3Digit() {
-    final rank1Number = getRewardNumber('1'); // ดึงเลขรางวัลที่ 1
+    final rank1Number = getRewardNumber('1');
     if (rank1Number == null || rank1Number.length < 3) {
       return null;
     }
-    return rank1Number.substring(rank1Number.length - 3); // เอา 3 ตัวท้าย
+    return rank1Number.substring(rank1Number.length - 3);
   }
 
   Future<void> _loadRewards() async {
@@ -73,12 +75,20 @@ class _MyScreenState extends State<MyScreen> {
       if (mounted) {
         setState(() {
           _rewardList = rewardList;
-          log(_rewardList.toString());
+
+          _rewardsLoaded = (rewardList != null && rewardList.isNotEmpty);
+          log(
+            'Rewards loaded successfully: ${rewardList?.length ?? 0} rewards',
+          );
         });
-        log('Rewards loaded successfully: ${rewardList?.length ?? 0} rewards');
       }
     } catch (e) {
       log('Error loading rewards: $e');
+      if (mounted) {
+        setState(() {
+          _rewardsLoaded = false;
+        });
+      }
     }
   }
 
@@ -86,7 +96,7 @@ class _MyScreenState extends State<MyScreen> {
     try {
       return _rewardList?.firstWhere((reward) => reward.rank == rank).number;
     } catch (e) {
-      return null; // ถ้าไม่เจอ ให้เป็น null
+      return null;
     }
   }
 
@@ -101,11 +111,8 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
-  // --- ฟังก์ชันค้นหาลอตเตอรี่ตามเลขที่กรอก ---
   void _searchLottery() {
     if (_lotteryList == null) return;
-
-    // ถ้าไม่มีเลขกรอกเลย ให้แสดงลอตเตอรี่ทั้งหมด
     if (_inputNumbers.every((num) => num.isEmpty)) {
       fetchLotteries();
       setState(() {
@@ -114,7 +121,6 @@ class _MyScreenState extends State<MyScreen> {
       return;
     }
 
-    // กรองเลขตามตำแหน่งที่กรอก
     final results = _lotteryList!.where((lotto) {
       for (int i = 0; i < _inputNumbers.length; i++) {
         if (_inputNumbers[i].isNotEmpty &&
@@ -139,10 +145,11 @@ class _MyScreenState extends State<MyScreen> {
     int lid,
   ) {
     return InkWell(
-      onTap: () {
-        if (status == "sold") return; // ถ้า sold ห้ามซื้อ
-        // Show Card ยืนยันการซื้อ
-        showDialog(
+      onTap: () async {
+        if (status == "sold") return;
+
+        // แสดง AlertDialog และรอรับผลลัพธ์จาก dialog
+        bool? result = await showDialog<bool>(
           context: context,
           builder: (context) {
             return AlertDialog(
@@ -170,7 +177,8 @@ class _MyScreenState extends State<MyScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                   onPressed: () {
-                    Navigator.pop(context);
+                    // ปิด dialog และส่งค่า false กลับไป
+                    Navigator.pop(context, false);
                   },
                   child: const Text("ยกเลิก"),
                 ),
@@ -179,19 +187,10 @@ class _MyScreenState extends State<MyScreen> {
                     backgroundColor: Colors.green,
                   ),
                   onPressed: () async {
-                    Navigator.pop(context);
-                    bool result = await _api.buyLotto(uid, lid);
-                    if (result) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("ซื้อสำเร็จ!")),
-                      );
-                      fetchLotteries(); // โหลดลิสต์ใหม่
-                      loadWallet(); // อัปเดตเงินในกระเป๋า
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("ซื้อไม่สำเร็จ!")),
-                      );
-                    }
+                    // ทำการซื้อและรอผลลัพธ์
+                    bool success = await _api.buyLotto(uid, lid);
+                    // ปิด dialog และส่งค่า success กลับไป
+                    Navigator.pop(context, success);
                   },
                   child: const Text("ยืนยัน"),
                 ),
@@ -199,6 +198,21 @@ class _MyScreenState extends State<MyScreen> {
             );
           },
         );
+
+        // ตรวจสอบผลลัพธ์ที่ได้จาก dialog และอัปเดต UI
+        if (result == true) {
+          // ถ้าซื้อสำเร็จ ให้อัปเดตข้อมูลทั้งหมด
+          fetchLotteries();
+          loadWallet();
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("ซื้อสำเร็จ!")));
+        } else if (result == false) {
+          // ถ้าซื้อไม่สำเร็จ
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("ซื้อไม่สำเร็จ!")));
+        }
       },
       child: Container(
         width: 140,
@@ -323,7 +337,7 @@ class _MyScreenState extends State<MyScreen> {
     const themeOrange = Color(0xffFF8400);
 
     return Scaffold(
-      backgroundColor: Color(0xFFFF8400),
+      backgroundColor: const Color(0xFFFF8400),
       appBar: AppBar(
         backgroundColor: themeBrown,
         elevation: 0,
@@ -417,7 +431,7 @@ class _MyScreenState extends State<MyScreen> {
                               ),
                               ElevatedButton(
                                 onPressed: () {
-                                  _loadRewards(); // Refresh rewards
+                                  _loadRewards();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: themeOrange,
@@ -454,7 +468,10 @@ class _MyScreenState extends State<MyScreen> {
                               _prizeBox('รางวัลที่ 2', getRewardNumber('2')),
                               _prizeBox('รางวัลที่ 3', getRewardNumber('3')),
                               _prizeBox('รางวัลเลขท้าย 3 ตัว', Last3Digit()),
-                              _prizeBox('รางวัลเลขท้าย 2 ตัว', null),
+                              _prizeBox(
+                                'รางวัลเลขท้าย 2 ตัว',
+                                getRewardNumber('5'),
+                              ), // Use rank '5' here
                             ],
                           ),
                         ],
@@ -479,153 +496,179 @@ class _MyScreenState extends State<MyScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // 🔹 ช่องกรอกตัวเลข 6 หลัก
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 6,
-                                    crossAxisSpacing: 5,
-                                    mainAxisSpacing: 5,
-                                    childAspectRatio: 1,
-                                  ),
-                              itemCount: 6,
-                              itemBuilder: (context, index) {
-                                // ช่องกรอกเลขแต่ละช่อง
-                                return TextField(
-                                  textAlign: TextAlign.center,
-                                  maxLength: 1,
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      _inputNumbers[index] = val;
-                                    });
-                                  },
-                                  decoration: InputDecoration(
-                                    counterText: "",
-                                    filled: true,
-                                    fillColor: Colors.grey[200],
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    // การสุ่มเลข
-                                    if (_lotteryList != null &&
-                                        _lotteryList!.isNotEmpty) {
-                                      final available = _lotteryList!
-                                          .where(
-                                            (lotto) => lotto.status != "sold",
-                                          )
-                                          .toList();
-                                      if (available.isNotEmpty) {
-                                        final random =
-                                            (available..shuffle()).first;
-                                        setState(() {
-                                          _randomLottery = random;
-                                        });
-                                      }
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.shuffle,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'สุ่มตัวเลข',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
+                          if (_rewardsLoaded) // Check the new variable
+                            const Center(
+                              child: Text(
+                                "ขณะนี้งดจำหน่ายเนื่องจากประกาศผลรางวัลแล้ว",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _searchLottery,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeBrown,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.search,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'ค้นหา',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-
-                          //  ถ้ามีสุ่มแล้ว แสดงแค่ 1 การ์ด
-                          if (_randomLottery != null)
-                            _marketLotteryBox(
-                              context,
-                              _randomLottery!.number,
-                              _randomLottery!.price,
-                              _randomLottery!.status,
-                              _randomLottery!.lid,
                             )
                           else
-                            (_lotteryList != null && _lotteryList!.isNotEmpty
-                                ? GridView.builder(
+                            Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: GridView.builder(
                                     shrinkWrap: true,
                                     physics:
                                         const NeverScrollableScrollPhysics(),
                                     gridDelegate:
                                         const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
-                                          crossAxisSpacing: 10,
-                                          mainAxisSpacing: 10,
-                                          childAspectRatio: 2,
+                                          crossAxisCount: 6,
+                                          crossAxisSpacing: 5,
+                                          mainAxisSpacing: 5,
+                                          childAspectRatio: 1,
                                         ),
-                                    itemCount: _lotteryList!.length,
+                                    itemCount: 6,
                                     itemBuilder: (context, index) {
-                                      final lottery = _lotteryList![index];
-                                      return _marketLotteryBox(
-                                        context,
-                                        lottery.number,
-                                        lottery.price,
-                                        lottery.status,
-                                        lottery.lid,
+                                      return TextField(
+                                        textAlign: TextAlign.center,
+                                        maxLength: 1,
+                                        keyboardType: TextInputType.number,
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _inputNumbers[index] = val;
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          counterText: "",
+                                          filled: true,
+                                          fillColor: Colors.grey[200],
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       );
                                     },
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          if (_lotteryList != null &&
+                                              _lotteryList!.isNotEmpty) {
+                                            final available = _lotteryList!
+                                                .where(
+                                                  (lotto) =>
+                                                      lotto.status != "sold",
+                                                )
+                                                .toList();
+                                            if (available.isNotEmpty) {
+                                              final random =
+                                                  (available..shuffle()).first;
+                                              setState(() {
+                                                _randomLottery = random;
+                                              });
+                                            }
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              18,
+                                            ),
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.shuffle,
+                                          color: Colors.white,
+                                        ),
+                                        label: const Text(
+                                          'สุ่มตัวเลข',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _searchLottery,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: themeBrown,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              18,
+                                            ),
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.search,
+                                          color: Colors.white,
+                                        ),
+                                        label: const Text(
+                                          'ค้นหา',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                if (_randomLottery != null)
+                                  _marketLotteryBox(
+                                    context,
+                                    _randomLottery!.number,
+                                    _randomLottery!.price,
+                                    _randomLottery!.status,
+                                    _randomLottery!.lid,
                                   )
-                                : const Center(
-                                    child: CircularProgressIndicator(),
-                                  )),
+                                else
+                                  (_lotteryList != null &&
+                                          _lotteryList!.isNotEmpty
+                                      ? GridView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                crossAxisSpacing: 10,
+                                                mainAxisSpacing: 10,
+                                                childAspectRatio: 2,
+                                              ),
+                                          itemCount: _lotteryList!.length,
+                                          itemBuilder: (context, index) {
+                                            final lottery =
+                                                _lotteryList![index];
+                                            return _marketLotteryBox(
+                                              context,
+                                              lottery.number,
+                                              lottery.price,
+                                              lottery.status,
+                                              lottery.lid,
+                                            );
+                                          },
+                                        )
+                                      : const Center(
+                                          child: Text(
+                                            'ไม่มีล็อตเตอรี่ที่ยังไม่ถูกขาย',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        )),
+                              ],
+                            ),
                         ],
                       ),
                     ),
