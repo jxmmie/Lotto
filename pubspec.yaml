@@ -42,6 +42,7 @@ dependencies:
   provider: ^6.1.5+1
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
 
@@ -51,7 +52,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/Screenshot 2025-03-07 223124.png"  # ไฟล์รูปไอคอนของคุณ
+  min_sdk_android: 21 # (ถ้า Android)
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
