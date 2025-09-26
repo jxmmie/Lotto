@@ -211,7 +211,10 @@ class _AdminPagesState extends State<AdminPages> {
                   Expanded(
                     child: Center(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 20.0,
+                        ), // เพิ่ม vertical padding เล็กน้อย
                         child: _buildLotteryCard(),
                       ),
                     ),
@@ -326,6 +329,8 @@ class _AdminPagesState extends State<AdminPages> {
   }
 
   Widget _buildLotteryCard() {
+    // ... โค้ดส่วนนี้ไม่ได้แก้ไข ...
+    // ... (ส่วนที่ตรวจสอบ _rewardList == null)
     if (_rewardList == null) {
       // ยังโหลดไม่เสร็จ → แสดง loading
       return Container(
@@ -359,7 +364,7 @@ class _AdminPagesState extends State<AdminPages> {
         ),
       );
     }
-
+    // ... (ส่วนที่ตรวจสอบ _rewardList!.isEmpty)
     if (_rewardList!.isEmpty) {
       // โหลดเสร็จแล้ว แต่ไม่มีข้อมูล → แสดงปุ่มแทน
       return Container(
@@ -547,54 +552,61 @@ class _AdminPagesState extends State<AdminPages> {
     );
   }
 
+  // **********************************************
+  // ************* แก้ไขส่วนนี้ **********************
+  // **********************************************
   Widget _buildTopAppBar(BuildContext context) {
-    return Container(
-      color: const Color(0xFF521F00),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              "assets/logo-text.png",
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
+    return AppBar(
+      automaticallyImplyLeading: false, // ปิดปุ่ม back ถ้ามี
+      backgroundColor: const Color(0xFF521F00),
+      // กำหนด logo ที่ตำแหน่ง leading
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            "assets/logo-text.png",
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
           ),
-          Row(
-            children: [
-              PopupMenuButton<String>(
-                onSelected: (item) => _onMenuItemSelected(context, item),
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'add_lottery',
-                    child: Text('เพิ่มลอตเตอรี่'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Text('ออกจากระบบ'),
-                  ),
-                ],
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                color: Colors.white,
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-        ],
+        ),
       ),
+      leadingWidth: 52, // กำหนดความกว้างให้พอดีกับ logo
+      // กำหนด menu list ที่ตำแหน่ง actions
+      actions: [
+        PopupMenuButton<String>(
+          onSelected: (item) => _onMenuItemSelected(context, item),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'add_lottery',
+              child: Text('เพิ่มลอตเตอรี่'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'logout',
+              child: Text('ออกจากระบบ'),
+            ),
+          ],
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          color: Colors.white,
+        ),
+        const SizedBox(width: 8), // เพิ่มระยะห่างด้านขวาเล็กน้อย
+      ],
     );
   }
 
   Widget _buildAdminProfile() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      // ใช้ Padding แทนการใช้ Container.padding และใช้ SizedBox(width: 10) ภายใน Row
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ), // เพิ่ม vertical padding เล็กน้อยเพื่อความสวยงาม
       color: const Color(0xFF521F00),
       child: const Row(
+        mainAxisAlignment: MainAxisAlignment.start, // ให้ชิดซ้าย
         children: [
-          SizedBox(width: 10),
+          // นำ SizedBox(width: 10) ออก เพราะใช้ Row's padding แล้ว
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -616,6 +628,8 @@ class _AdminPagesState extends State<AdminPages> {
       ),
     );
   }
+  // **********************************************
+  // **********************************************
 
   void _onMenuItemSelected(BuildContext context, String value) {
     switch (value) {
@@ -623,7 +637,7 @@ class _AdminPagesState extends State<AdminPages> {
         _showAddLotteryCard(context);
         break;
       case 'logout':
-        // เวลากดออกจากระบบ ให้ไปหน้า AdminPages ใหม่
+        // เวลากดออกจากระบบ ให้ไปหน้า LoginPages
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const Login()),
           (route) => false,
