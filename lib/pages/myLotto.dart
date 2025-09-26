@@ -79,6 +79,14 @@ class _MylottoState extends State<Mylotto> {
     }
   }
 
+  String? Last2Digit() {
+    final rank1Number = getRewardNumber('1'); // ดึงเลขรางวัลที่ 1
+    if (rank1Number == null || rank1Number.length < 3) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 3); // เอา 3 ตัวท้าย
+  }
+
   String? Last3Digit() {
     final rank1Number = getRewardNumber('1'); // ดึงเลขรางวัลที่ 1
     if (rank1Number == null || rank1Number.length < 3) {
@@ -328,7 +336,7 @@ class _MylottoState extends State<Mylotto> {
                               _prizeBox('รางวัลที่ 2', getRewardNumber('2')),
                               _prizeBox('รางวัลที่ 3', getRewardNumber('3')),
                               _prizeBox('รางวัลเลขท้าย 3 ตัว', Last3Digit()),
-                              _prizeBox('รางวัลเลขท้าย 2 ตัว', null),
+                              _prizeBox('รางวัลเลขท้าย 2 ตัว', Last2Digit()),
                             ],
                           ),
                         ],

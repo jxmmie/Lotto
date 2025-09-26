@@ -61,6 +61,14 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
+  String? Last2Digit() {
+    final rank1Number = getRewardNumber('5');
+    if (rank1Number == null || rank1Number.length < 2) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 2);
+  }
+
   String? Last3Digit() {
     final rank1Number = getRewardNumber('1');
     if (rank1Number == null || rank1Number.length < 3) {
@@ -470,7 +478,7 @@ class _MyScreenState extends State<MyScreen> {
                               _prizeBox('รางวัลเลขท้าย 3 ตัว', Last3Digit()),
                               _prizeBox(
                                 'รางวัลเลขท้าย 2 ตัว',
-                                getRewardNumber('5'),
+                                Last2Digit(),
                               ), // Use rank '5' here
                             ],
                           ),

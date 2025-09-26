@@ -113,6 +113,33 @@ class _AdminPagesState extends State<AdminPages> {
     );
   }
 
+  /// ------------------ ฟังก์ชันโชว์เลขท้าย 2 ตัว ------------------
+  String? Last2Digit() {
+    final rank1Number = getRewardNumber('5');
+    if (rank1Number == null || rank1Number.length < 2) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 2);
+  }
+
+  /// ------------------ ฟังก์ชันโชว์เลขท้าย 3 ตัว ------------------
+
+  String? Last3Digit() {
+    final rank1Number = getRewardNumber('1');
+    if (rank1Number == null || rank1Number.length < 3) {
+      return null;
+    }
+    return rank1Number.substring(rank1Number.length - 3);
+  }
+
+  String? getRewardNumber(String rank) {
+    try {
+      return _rewardList?.firstWhere((reward) => reward.rank == rank).number;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// ------------------ ฟังก์ชันเลือกเลขท้าย 2 ตัว ------------------
   Future<void> _selectRewardDialog() async {
     final TextEditingController numberController = TextEditingController();
@@ -329,10 +356,7 @@ class _AdminPagesState extends State<AdminPages> {
   }
 
   Widget _buildLotteryCard() {
-    // ... โค้ดส่วนนี้ไม่ได้แก้ไข ...
-    // ... (ส่วนที่ตรวจสอบ _rewardList == null)
     if (_rewardList == null) {
-      // ยังโหลดไม่เสร็จ → แสดง loading
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -341,58 +365,18 @@ class _AdminPagesState extends State<AdminPages> {
           border: Border.all(color: const Color(0xFFFDAA26), width: 2),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "ยังไม่ได้กำหนดรางวัล",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            _buildButton(
-              "เลือกรางวัล",
-              Colors.orange,
-              Colors.white,
-              _selectRewardDialog,
-            ),
-            const SizedBox(height: 10),
-            _buildButton(
-              "สุ่มผลรางวัล",
-              Colors.orange,
-              Colors.white,
-              _randomRewards,
-            ),
-          ],
-        ),
-      );
-    }
-    // ... (ส่วนที่ตรวจสอบ _rewardList!.isEmpty)
-    if (_rewardList!.isEmpty) {
-      // โหลดเสร็จแล้ว แต่ไม่มีข้อมูล → แสดงปุ่มแทน
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF521F00),
-          borderRadius: BorderRadius.circular(15.0),
-          border: Border.all(color: const Color(0xFFFDAA26), width: 2),
-        ),
-        child: Column(
-          children: [
-            const Text(
-              "ยังไม่มีข้อมูลรางวัล",
+              "คุณยังไม่ได้สุ่มรางวัล",
               style: TextStyle(
-                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 20),
             _buildButton(
-              "เลือกรางวัล",
-              Colors.orange,
-              Colors.white,
-              _selectRewardDialog,
-            ),
-            const SizedBox(height: 10),
-            _buildButton(
               "สุ่มผลรางวัล",
               Colors.orange,
               Colors.white,
@@ -400,30 +384,146 @@ class _AdminPagesState extends State<AdminPages> {
             ),
             const SizedBox(height: 10),
             _buildButton(
-              "ล้างข้อมูลทั้งหมด",
-              Colors.red,
+              "เลือกรางวัล",
+              Colors.orange,
               Colors.white,
-              _clearAllData,
+              _selectRewardDialog,
             ),
           ],
         ),
       );
     }
 
-    // ถ้ามีข้อมูล → โชว์รางวัลตามปกติ
     final Map<String, List<Rewardrank>> rewardsByRank = {};
     for (var reward in _rewardList!) {
       rewardsByRank.putIfAbsent(reward.rank, () => []).add(reward);
     }
 
-    const List<String> displayOrder = ['1', '2', '3', '4', '5'];
-    final List<Widget> rewardWidgets = [];
-    for (String rank in displayOrder) {
-      final List<Rewardrank>? rewards = rewardsByRank[rank];
+    // แยกรางวัลหลัก 1-3
+    final List<Widget> mainRewards = [];
+    for (String rank in ['1', '2', '3']) {
+      final rewards = rewardsByRank[rank];
       if (rewards != null && rewards.isNotEmpty) {
         for (var reward in rewards) {
-          rewardWidgets.add(_buildRewardRow(reward.rank, reward.number));
+          mainRewards.add(_buildRewardRow(reward.rank, reward.number));
         }
+      }
+    }
+
+    // สร้าง widget สำหรับเลขท้าย 3 ตัว ของรางวัลที่ 1
+    final List<Widget> last3DigitsWidget = [];
+    final List<Rewardrank>? firstPrize = rewardsByRank['1'];
+    if (firstPrize != null && firstPrize.isNotEmpty) {
+      final String number = firstPrize[0].number;
+      if (number.length >= 3) {
+        final String last3 = number.substring(number.length - 3);
+        last3DigitsWidget.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'รางวัลเลขท้าย 3 ตัว',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    Text(
+                      '4 หมื่นบาท',
+                      style: const TextStyle(
+                        color: Colors.lightGreen,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Display the lottery number
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      last3,
+                      style: const TextStyle(
+                        color: Color(0xFF521F00),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    final List<Widget> last2DigitsWidget = [];
+    final List<Rewardrank>? fifthPrize =
+        rewardsByRank['5']; // รางวัลเลขท้าย 2 ตัว = rank 5
+    if (fifthPrize != null && fifthPrize.isNotEmpty) {
+      final String number = fifthPrize[0].number;
+      if (number.length >= 2) {
+        final String last2 = number.substring(
+          number.length - 2,
+        ); // ดึงเลขท้าย 2 ตัว
+        last2DigitsWidget.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'รางวัลเลขท้าย 2 ตัว', // เปลี่ยนข้อความ
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const Text(
+                      '2 หมื่นบาท', // ใส่รางวัลสำหรับเลขท้าย 2 ตัว
+                      style: TextStyle(
+                        color: Colors.lightGreen,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFE6B3), Color(0xFFD4A762)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      last2, // แสดงเลขท้าย 2 ตัว
+                      style: const TextStyle(
+                        color: Color(0xFF521F00),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
     }
 
@@ -450,8 +550,13 @@ class _AdminPagesState extends State<AdminPages> {
             style: TextStyle(color: Colors.white, fontSize: 14),
           ),
           const SizedBox(height: 20),
-          ...rewardWidgets,
-          const SizedBox(height: 20),
+          ...mainRewards,
+          const SizedBox(height: 10),
+          // แสดงเลขท้าย 3 ตัวต่อจากรางวัลที่ 3
+          ...last3DigitsWidget,
+          const SizedBox(height: 10),
+          ...last2DigitsWidget,
+          const SizedBox(height: 10),
           Column(
             children: [
               _buildButton(
@@ -468,12 +573,9 @@ class _AdminPagesState extends State<AdminPages> {
                 _randomRewards,
               ),
               const SizedBox(height: 10),
-              _buildButton(
-                "ล้างข้อมูลทั้งหมด",
-                Colors.red,
-                Colors.white,
-                _clearAllData,
-              ),
+              _buildButton("ล้างข้อมูลทั้งหมด", Colors.red, Colors.white, () {
+                _clearAllData();
+              }),
             ],
           ),
         ],
